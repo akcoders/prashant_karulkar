@@ -1,8 +1,6 @@
 /*
 Theme Name: Prashant Bootstrap
-Theme URI: https://example.com/prashant-bootstrap
-Author: OpenAI Codex
-Author URI: https://openai.com/
+Author: Anuj Shukla
 Description: A custom WordPress theme built with Bootstrap 5 for a modern business-style website.
 Version: 1.0.0
 Requires at least: 6.7
@@ -10,6 +8,7 @@ Tested up to: 6.9.4
 Requires PHP: 7.4
 Text Domain: prashant-bootstrap
 */
+
 
 :root {
     --pb-ink: #16365f;
