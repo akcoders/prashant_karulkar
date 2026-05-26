@@ -1,0 +1,22 @@
+<svg width="1400" height="1000" viewBox="0 0 1400 1000" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1400" height="1000" rx="48" fill="#F5F1E8"/>
+  <rect x="75" y="75" width="1250" height="850" rx="40" fill="url(#paint0_linear)"/>
+  <circle cx="1032" cy="316" r="220" fill="#143F78"/>
+  <circle cx="1032" cy="316" r="168" fill="#275F9A"/>
+  <circle cx="1032" cy="316" r="112" fill="#E9F0F8"/>
+  <rect x="200" y="208" width="430" height="16" rx="8" fill="#E0A14B"/>
+  <rect x="200" y="256" width="360" height="11" rx="5.5" fill="#8CA5C2"/>
+  <rect x="200" y="290" width="280" height="11" rx="5.5" fill="#8CA5C2"/>
+  <rect x="200" y="540" width="502" height="256" rx="36" fill="#FFFCF7"/>
+  <rect x="249" y="593" width="228" height="17" rx="8.5" fill="#143F78"/>
+  <rect x="249" y="641" width="376" height="12" rx="6" fill="#93A9C3"/>
+  <rect x="249" y="675" width="344" height="12" rx="6" fill="#93A9C3"/>
+  <rect x="249" y="709" width="196" height="12" rx="6" fill="#93A9C3"/>
+  <path d="M797 725C905 665 983 601 1126 473" stroke="#E0A14B" stroke-width="10" stroke-linecap="round"/>
+  <defs>
+    <linearGradient id="paint0_linear" x1="152" y1="134" x2="1240" y2="855" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFDF9"/>
+      <stop offset="1" stop-color="#EFF5FC"/>
+    </linearGradient>
+  </defs>
+</svg>
