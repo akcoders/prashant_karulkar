@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", function () {
+var prashantBootstrapInit = function () {
     var preloader = document.getElementById("site-preloader");
     var siteHeader = document.querySelector(".site-header");
     var readMoreToggles = document.querySelectorAll(".read-more-toggle");
@@ -89,4 +89,11 @@ document.addEventListener("DOMContentLoaded", function () {
             revealObserver.observe(item);
         });
     }
-});
+};
+
+if (document.readyState !== "loading") {
+    prashantBootstrapInit();
+} else {
+    document.addEventListener("DOMContentLoaded", prashantBootstrapInit);
+}
+
