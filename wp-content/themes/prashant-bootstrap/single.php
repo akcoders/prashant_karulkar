@@ -37,7 +37,7 @@ get_header();
                     <div class="row align-items-center g-3">
                         <div class="col-md">
                             <h2 class="h4 mb-1"><?php esc_html_e( 'Explore more updates', 'prashant-bootstrap' ); ?></h2>
-                            <p class="mb-0 text-secondary"><?php esc_html_e( 'Read more notes, media moments, and public-life highlights from the profile archive.', 'prashant-bootstrap' ); ?></p>
+                            <p class="mb-0 text-secondary"><?php esc_html_e( 'Read more notes, media moments, and public-life highlights from the profile collection.', 'prashant-bootstrap' ); ?></p>
                         </div>
                         <div class="col-md-auto">
                             <a class="btn btn-outline-dark rounded-pill px-4" href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php esc_html_e( 'Back to Home', 'prashant-bootstrap' ); ?></a>

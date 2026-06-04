@@ -103,7 +103,26 @@ function prashant_bootstrap_import_local_image_to_media( $file_path, $title = ''
 
 function prashant_bootstrap_theme_image_media_url( $relative_path, $title = '' ) {
     $file_path = get_template_directory() . '/assets/images/' . ltrim( $relative_path, '/' );
-    $url       = prashant_bootstrap_import_local_image_to_media( $file_path, $title );
+    $url       = '';
+
+    if ( file_exists( $file_path ) ) {
+        $existing = get_posts(
+            array(
+                'post_type'      => 'attachment',
+                'post_status'    => 'inherit',
+                'meta_key'       => '_prashant_source_file',
+                'meta_value'     => wp_normalize_path( $file_path ),
+                'fields'         => 'ids',
+                'posts_per_page' => 1,
+            )
+        );
+
+        if ( ! empty( $existing ) ) {
+            $url = wp_get_attachment_url( (int) $existing[0] );
+        } elseif ( is_admin() ) {
+            $url = prashant_bootstrap_import_local_image_to_media( $file_path, $title );
+        }
+    }
 
     return $url ? $url : get_template_directory_uri() . '/assets/images/' . ltrim( $relative_path, '/' );
 }
@@ -137,7 +156,7 @@ function prashant_bootstrap_profile_images( $relative_dir, $limit = 8 ) {
             'alt' => ucwords( str_replace( array( '-', '_', '.jpg', '.jpeg', '.png', '.webp' ), ' ', basename( $relative_file ) ) ),
         );
 
-        if ( count( $images ) >= $limit ) {
+        if ( $limit > 0 && count( $images ) >= $limit ) {
             break;
         }
     }
@@ -224,7 +243,7 @@ function prashant_bootstrap_profile_page_data() {
         'picture-gallery' => array(
             'eyebrow' => 'Gallery',
             'title'   => 'Picture Gallery',
-            'lead'    => 'A visual archive of portraits, public meetings, recognitions, old memories, and institutional moments.',
+            'lead'    => 'Album-wise collections of portraits, public meetings, recognitions, old memories, and institutional moments.',
             'galleries' => array(
                 array( 'title' => 'Portraits', 'folder' => 'Pk sir Solo pics' ),
                 array( 'title' => 'Ministers and Public Life', 'folder' => 'Photos with Ministers and others/Ministers and others' ),
@@ -235,7 +254,7 @@ function prashant_bootstrap_profile_page_data() {
         'video-gallery' => array(
             'eyebrow' => 'Video',
             'title'   => 'Video Gallery',
-            'lead'    => 'A video archive for interviews, speeches, launch moments, field stories, and social media features.',
+            'lead'    => 'Album-wise video collections for interviews, speeches, launch moments, field stories, and social media features.',
             'video_cards' => array(
                 array( 'title' => 'Public Addresses', 'text' => 'Speeches, interviews, felicitation clips, and stage appearances.' ),
                 array( 'title' => 'Media Moments', 'text' => 'News features, digital clips, and public coverage highlights.' ),
@@ -311,7 +330,14 @@ function prashant_bootstrap_get_profile_page_data( $slug ) {
         return null;
     }
 
-    return prashant_bootstrap_apply_profile_page_overrides( $slug, $pages[ $slug ] );
+    $data    = prashant_bootstrap_apply_profile_page_overrides( $slug, $pages[ $slug ] );
+    $options = get_option( 'prashant_bootstrap_profile_pages_options', array() );
+
+    if ( 'accolades' === $slug && empty( $options[ $slug ]['cards'] ) && ! empty( $data['images'] ) ) {
+        $data['cards'] = prashant_bootstrap_accolade_cards_from_images( $data['images'] );
+    }
+
+    return $data;
 }
 
 function prashant_bootstrap_get_social_icon_label( $label, $url = '' ) {
@@ -531,6 +557,28 @@ function prashant_bootstrap_profile_images_to_text( $images ) {
     return implode( "\n", $lines );
 }
 
+function prashant_bootstrap_accolade_cards_from_images( $images ) {
+    if ( empty( $images ) || ! is_array( $images ) ) {
+        return array();
+    }
+
+    $cards = array();
+
+    foreach ( $images as $index => $image ) {
+        if ( empty( $image['url'] ) ) {
+            continue;
+        }
+
+        $cards[] = array(
+            'title'  => sprintf( __( 'Accolade %02d', 'prashant-bootstrap' ), $index + 1 ),
+            'text'   => '',
+            'folder' => $image['url'],
+        );
+    }
+
+    return $cards;
+}
+
 function prashant_bootstrap_profile_gallery_images_to_text( $galleries ) {
     if ( empty( $galleries ) || ! is_array( $galleries ) ) {
         return '';
@@ -553,6 +601,106 @@ function prashant_bootstrap_profile_gallery_images_to_text( $galleries ) {
     }
 
     return implode( "\n", $lines );
+}
+
+function prashant_bootstrap_profile_albums_to_json( $galleries ) {
+    if ( empty( $galleries ) || ! is_array( $galleries ) ) {
+        return '[]';
+    }
+
+    $albums = array();
+
+    foreach ( $galleries as $gallery ) {
+        $title  = isset( $gallery['title'] ) ? $gallery['title'] : __( 'Gallery', 'prashant-bootstrap' );
+        $images = array();
+        $cover  = isset( $gallery['cover'] ) && is_array( $gallery['cover'] ) ? $gallery['cover'] : array();
+
+        if ( ! empty( $gallery['images'] ) && is_array( $gallery['images'] ) ) {
+            $images = $gallery['images'];
+        } elseif ( ! empty( $gallery['folder'] ) ) {
+            $images = prashant_bootstrap_profile_images( $gallery['folder'], 12 );
+        }
+
+        if ( empty( $cover['url'] ) && ! empty( $images[0]['url'] ) ) {
+            $cover = $images[0];
+        }
+
+        $albums[] = array(
+            'title'  => $title,
+            'cover'  => array(
+                'url' => isset( $cover['url'] ) ? $cover['url'] : '',
+                'alt' => isset( $cover['alt'] ) ? $cover['alt'] : $title,
+            ),
+            'images' => array_values(
+                array_filter(
+                    array_map(
+                        function ( $image ) use ( $title ) {
+                            if ( empty( $image['url'] ) ) {
+                                return null;
+                            }
+
+                            return array(
+                                'url' => $image['url'],
+                                'alt' => isset( $image['alt'] ) ? $image['alt'] : $title,
+                            );
+                        },
+                        $images
+                    )
+                )
+            ),
+        );
+    }
+
+    return wp_json_encode( $albums, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES );
+}
+
+function prashant_bootstrap_profile_parse_albums_json( $raw_json ) {
+    $decoded = json_decode( wp_unslash( $raw_json ), true );
+
+    if ( empty( $decoded ) || ! is_array( $decoded ) ) {
+        return array();
+    }
+
+    $albums = array();
+
+    foreach ( $decoded as $album ) {
+        if ( ! is_array( $album ) ) {
+            continue;
+        }
+
+        $title = isset( $album['title'] ) ? sanitize_text_field( $album['title'] ) : '';
+        if ( '' === $title ) {
+            continue;
+        }
+
+        $images = array();
+        if ( ! empty( $album['images'] ) && is_array( $album['images'] ) ) {
+            foreach ( $album['images'] as $image ) {
+                if ( empty( $image['url'] ) ) {
+                    continue;
+                }
+
+                $images[] = array(
+                    'url' => esc_url_raw( $image['url'] ),
+                    'alt' => isset( $image['alt'] ) ? sanitize_text_field( $image['alt'] ) : $title,
+                );
+            }
+        }
+
+        $cover_url = isset( $album['cover']['url'] ) ? esc_url_raw( $album['cover']['url'] ) : '';
+        $cover_alt = isset( $album['cover']['alt'] ) ? sanitize_text_field( $album['cover']['alt'] ) : $title;
+
+        $albums[] = array(
+            'title'  => $title,
+            'cover'  => array(
+                'url' => $cover_url,
+                'alt' => $cover_alt,
+            ),
+            'images' => $images,
+        );
+    }
+
+    return $albums;
 }
 
 function prashant_bootstrap_profile_parse_images_text( $raw_text ) {
@@ -695,12 +843,26 @@ function prashant_bootstrap_apply_profile_page_overrides( $slug, $data ) {
         }
     }
 
-    if ( isset( $page_options['gallery_images'] ) && '' !== trim( $page_options['gallery_images'] ) ) {
+    $parsed_albums = array();
+
+    if ( isset( $page_options['gallery_albums'] ) && '' !== trim( $page_options['gallery_albums'] ) ) {
+        $parsed_albums = prashant_bootstrap_profile_parse_albums_json( $page_options['gallery_albums'] );
+
+        if ( ! empty( $parsed_albums ) ) {
+            $data['galleries'] = $parsed_albums;
+        }
+    }
+
+    if ( empty( $parsed_albums ) && isset( $page_options['gallery_images'] ) && '' !== trim( $page_options['gallery_images'] ) ) {
         $parsed_galleries = prashant_bootstrap_profile_parse_gallery_images_text( $page_options['gallery_images'] );
 
         if ( ! empty( $parsed_galleries ) ) {
             $data['galleries'] = $parsed_galleries;
         }
+    }
+
+    if ( 'accolades' === $slug && empty( $page_options['cards'] ) && ! empty( $data['images'] ) ) {
+        $data['cards'] = prashant_bootstrap_accolade_cards_from_images( $data['images'] );
     }
 
     return $data;
@@ -777,6 +939,20 @@ function prashant_bootstrap_render_profile_pages_settings_page() {
             <?php settings_fields( 'prashant_bootstrap_profile_pages_group' ); ?>
 
             <?php foreach ( $defaults as $slug => $page ) : ?>
+                <?php
+                if ( 'accolades' === $slug ) {
+                    $accolade_images = $page['images'];
+
+                    if ( isset( $options[ $slug ]['images'] ) && '' !== trim( $options[ $slug ]['images'] ) ) {
+                        $saved_accolade_images = prashant_bootstrap_profile_parse_images_text( $options[ $slug ]['images'] );
+                        if ( ! empty( $saved_accolade_images ) ) {
+                            $accolade_images = $saved_accolade_images;
+                        }
+                    }
+
+                    $page['cards'] = prashant_bootstrap_accolade_cards_from_images( $accolade_images );
+                }
+                ?>
                 <details class="card" style="max-width: 1180px; padding: 18px 22px; margin: 0 0 18px;" <?php echo 'about-prashant-karulkar' === $slug ? 'open' : ''; ?>>
                     <summary style="cursor: pointer; font-size: 18px; font-weight: 700;"><?php echo esc_html( $page['title'] ); ?></summary>
 
@@ -823,8 +999,11 @@ function prashant_bootstrap_render_profile_pages_settings_page() {
                                 'stats'        => array( __( 'Stats', 'prashant-bootstrap' ), 'number | label', array( 'number', 'label' ) ),
                                 'sections'     => array( __( 'Story Sections', 'prashant-bootstrap' ), 'heading | text', array( 'heading', 'text' ) ),
                                 'timeline'     => array( __( 'Timeline', 'prashant-bootstrap' ), 'year | title | text', array( 'year', 'title', 'text' ) ),
-                                'cards'        => array( __( 'Cards', 'prashant-bootstrap' ), 'title | text | optional image folder', array( 'title', 'text', 'folder' ) ),
-                                'galleries'    => array( __( 'Gallery Groups', 'prashant-bootstrap' ), 'title | image folder', array( 'title', 'folder' ) ),
+                                'cards'        => array(
+                                    'accolades' === $slug ? __( 'Accolade Cards', 'prashant-bootstrap' ) : ( 'media-coverage' === $slug ? __( 'Media Highlight Cards', 'prashant-bootstrap' ) : __( 'Cards', 'prashant-bootstrap' ) ),
+                                    'title | text | optional image',
+                                    array( 'title', 'text', 'folder' ),
+                                ),
                                 'video_cards'  => array( __( 'Video Cards', 'prashant-bootstrap' ), 'title | text', array( 'title', 'text' ) ),
                                 'social_links' => array( __( 'Social Links', 'prashant-bootstrap' ), 'label | url | metric/details', array( 'label', 'url', 'metric' ) ),
                             );
@@ -860,7 +1039,7 @@ function prashant_bootstrap_render_profile_pages_settings_page() {
                                 </tr>
                             <?php endif; ?>
 
-                            <?php if ( ! empty( $page['images'] ) ) : ?>
+                            <?php if ( ! empty( $page['images'] ) && 'accolades' !== $slug ) : ?>
                                 <tr>
                                     <th scope="row"><?php esc_html_e( 'Page Images', 'prashant-bootstrap' ); ?></th>
                                     <td>
@@ -870,12 +1049,31 @@ function prashant_bootstrap_render_profile_pages_settings_page() {
                                 </tr>
                             <?php endif; ?>
 
-                            <?php if ( ! empty( $page['galleries'] ) ) : ?>
+                            <?php if ( 'media-coverage' === $slug ) : ?>
                                 <tr>
-                                    <th scope="row"><?php esc_html_e( 'Uploaded Gallery Images', 'prashant-bootstrap' ); ?></th>
+                                    <th scope="row"><?php esc_html_e( 'News and Media Posts', 'prashant-bootstrap' ); ?></th>
                                     <td>
-                                        <textarea class="large-text code pb-media-textarea" rows="8" data-mode="gallery" name="prashant_bootstrap_profile_pages_options[<?php echo esc_attr( $slug ); ?>][gallery_images]"><?php echo esc_textarea( prashant_bootstrap_profile_option_value( $options, $slug, 'gallery_images', prashant_bootstrap_profile_gallery_images_to_text( $page['galleries'] ) ) ); ?></textarea>
-                                        <p class="description"><?php esc_html_e( 'Use Add Gallery Image to select from Media Library. Format: gallery title | image URL | alt text. When filled, this replaces folder-based gallery images.', 'prashant-bootstrap' ); ?></p>
+                                        <a class="button button-primary" href="<?php echo esc_url( admin_url( 'edit.php' ) ); ?>"><?php esc_html_e( 'Manage Posts', 'prashant-bootstrap' ); ?></a>
+                                        <a class="button" href="<?php echo esc_url( admin_url( 'post-new.php' ) ); ?>"><?php esc_html_e( 'Add New Post', 'prashant-bootstrap' ); ?></a>
+                                    </td>
+                                </tr>
+                            <?php endif; ?>
+
+                            <?php if ( ! empty( $page['galleries'] ) ) : ?>
+                                <?php
+                                $gallery_album_value = '';
+                                if ( isset( $options[ $slug ]['gallery_albums'] ) && '' !== trim( $options[ $slug ]['gallery_albums'] ) ) {
+                                    $gallery_album_value = $options[ $slug ]['gallery_albums'];
+                                } elseif ( isset( $options[ $slug ]['gallery_images'] ) && '' !== trim( $options[ $slug ]['gallery_images'] ) ) {
+                                    $gallery_album_value = prashant_bootstrap_profile_albums_to_json( prashant_bootstrap_profile_parse_gallery_images_text( $options[ $slug ]['gallery_images'] ) );
+                                } else {
+                                    $gallery_album_value = prashant_bootstrap_profile_albums_to_json( $page['galleries'] );
+                                }
+                                ?>
+                                <tr>
+                                    <th scope="row"><?php esc_html_e( 'Manage Gallery Albums', 'prashant-bootstrap' ); ?></th>
+                                    <td>
+                                        <textarea class="large-text code pb-album-textarea" rows="8" name="prashant_bootstrap_profile_pages_options[<?php echo esc_attr( $slug ); ?>][gallery_albums]"><?php echo esc_textarea( $gallery_album_value ); ?></textarea>
                                     </td>
                                 </tr>
                             <?php endif; ?>
@@ -888,20 +1086,29 @@ function prashant_bootstrap_render_profile_pages_settings_page() {
         </form>
     </div>
     <style>
-        .pb-media-textarea, .pb-card-textarea { display:none; }
-        .pb-media-manager, .pb-card-manager { background:#fff; border:1px solid #dcdcde; border-radius:8px; margin-top:10px; padding:12px; }
+        .pb-media-textarea, .pb-card-textarea, .pb-album-textarea { display:none; }
+        .pb-media-manager, .pb-card-manager, .pb-album-manager { background:#fff; border:1px solid #dcdcde; border-radius:8px; margin-top:10px; padding:12px; }
         .pb-media-row { align-items:center; border-bottom:1px solid #f0f0f1; display:grid; gap:10px; grid-template-columns:72px 1fr 1fr auto; padding:10px 0; }
         .pb-card-row { align-items:start; border-bottom:1px solid #f0f0f1; display:grid; gap:10px; grid-template-columns:96px 1fr 1.4fr 1fr auto; padding:12px 0; }
+        .pb-album-card { background:#f6f7f7; border:1px solid #dcdcde; border-radius:10px; margin-bottom:14px; padding:14px; }
+        .pb-album-head { align-items:start; display:grid; gap:12px; grid-template-columns:130px 1fr auto; }
+        .pb-album-cover-preview { background:#fff; border:1px solid #dcdcde; border-radius:8px; height:96px; object-fit:cover; width:130px; }
+        .pb-album-fields { display:grid; gap:8px; }
+        .pb-album-photos { display:grid; gap:8px; margin-top:12px; }
+        .pb-album-photo-row { align-items:center; background:#fff; border:1px solid #dcdcde; border-radius:8px; display:grid; gap:8px; grid-template-columns:72px 1fr 1fr auto; padding:8px; }
+        .pb-album-photo-preview { background:#f6f7f7; border:1px solid #dcdcde; border-radius:6px; height:58px; object-fit:cover; width:72px; }
         .pb-media-row:last-child, .pb-card-row:last-child { border-bottom:0; }
         .pb-media-preview, .pb-card-preview { background:#f6f7f7; border:1px solid #dcdcde; border-radius:6px; height:60px; object-fit:cover; width:72px; }
         .pb-card-preview { height:78px; width:96px; }
         .pb-media-row[data-mode="gallery"] { grid-template-columns:72px 1fr 1fr 1fr auto; }
-        .pb-media-actions, .pb-card-actions { display:flex; flex-direction:column; gap:6px; }
+        .pb-media-actions, .pb-card-actions, .pb-album-actions, .pb-album-photo-actions { display:flex; flex-direction:column; gap:6px; }
         @media (max-width: 900px) {
             .pb-media-row,
             .pb-media-row[data-mode="gallery"],
-            .pb-card-row { grid-template-columns:1fr; }
-            .pb-media-preview, .pb-card-preview { height:auto; max-width:180px; width:100%; }
+            .pb-card-row,
+            .pb-album-head,
+            .pb-album-photo-row { grid-template-columns:1fr; }
+            .pb-media-preview, .pb-card-preview, .pb-album-cover-preview, .pb-album-photo-preview { height:auto; max-width:180px; width:100%; }
         }
     </style>
     <script>
@@ -1004,7 +1211,7 @@ function prashant_bootstrap_render_profile_pages_settings_page() {
                 var preview = $('<img class="pb-card-preview" alt="">').attr("src", isImageUrl(data.image) ? data.image : "");
                 var title = $('<input type="text" class="regular-text pb-card-title-input" placeholder="Card title">').val(data.title || "");
                 var text = $('<textarea class="large-text pb-card-text-input" rows="3" placeholder="Card content"></textarea>').val(data.text || "");
-                var image = $('<input type="text" class="regular-text pb-card-image-input" placeholder="Image URL or folder path">').val(data.image || "");
+                var image = $('<input type="text" class="regular-text pb-card-image-input" placeholder="Image URL">').val(data.image || "");
                 var actions = $('<div class="pb-card-actions"></div>');
                 var select = $('<button type="button" class="button pb-card-select">Select Image</button>');
                 var remove = $('<button type="button" class="button-link-delete pb-card-remove">Remove</button>');
@@ -1013,6 +1220,95 @@ function prashant_bootstrap_render_profile_pages_settings_page() {
                 row.append(preview, title, text, image, actions);
                 manager.find(".pb-card-rows").append(row);
                 serializeCardRows(manager);
+            }
+
+            function parseAlbums(value) {
+                try {
+                    var albums = JSON.parse(value || "[]");
+                    return Array.isArray(albums) ? albums : [];
+                } catch (error) {
+                    return [];
+                }
+            }
+
+            function serializeAlbums(manager) {
+                var albums = [];
+
+                manager.find(".pb-album-card").each(function () {
+                    var card = $(this);
+                    var title = card.find(".pb-album-title-input").val().trim();
+                    var coverUrl = card.find(".pb-album-cover-input").val().trim();
+                    var coverAlt = card.find(".pb-album-cover-alt-input").val().trim();
+                    var images = [];
+
+                    card.find(".pb-album-photo-row").each(function () {
+                        var row = $(this);
+                        var url = row.find(".pb-album-photo-url").val().trim();
+                        var alt = row.find(".pb-album-photo-alt").val().trim();
+
+                        if (!url) {
+                            return;
+                        }
+
+                        images.push({ url: url, alt: alt });
+                    });
+
+                    if (!title && !coverUrl && !images.length) {
+                        return;
+                    }
+
+                    albums.push({
+                        title: title || "Gallery Album",
+                        cover: { url: coverUrl, alt: coverAlt || title },
+                        images: images
+                    });
+                });
+
+                manager.prev(".pb-album-textarea").val(JSON.stringify(albums, null, 2));
+            }
+
+            function createAlbumPhotoRow(albumCard, data) {
+                var row = $('<div class="pb-album-photo-row"></div>');
+                var preview = $('<img class="pb-album-photo-preview" alt="">').attr("src", data.url || "");
+                var url = $('<input type="url" class="regular-text pb-album-photo-url" placeholder="Photo URL">').val(data.url || "");
+                var alt = $('<input type="text" class="regular-text pb-album-photo-alt" placeholder="Alt text">').val(data.alt || "");
+                var actions = $('<div class="pb-album-photo-actions"></div>');
+                var select = $('<button type="button" class="button pb-album-photo-select">Select Photo</button>');
+                var remove = $('<button type="button" class="button-link-delete pb-album-photo-remove">Remove</button>');
+
+                actions.append(select, remove);
+                row.append(preview, url, alt, actions);
+                albumCard.find(".pb-album-photos").append(row);
+                serializeAlbums(albumCard.closest(".pb-album-manager"));
+            }
+
+            function createAlbumCard(manager, data) {
+                var album = data || {};
+                var cover = album.cover || {};
+                var card = $('<div class="pb-album-card"></div>');
+                var head = $('<div class="pb-album-head"></div>');
+                var preview = $('<img class="pb-album-cover-preview" alt="">').attr("src", cover.url || "");
+                var fields = $('<div class="pb-album-fields"></div>');
+                var title = $('<input type="text" class="large-text pb-album-title-input" placeholder="Album title">').val(album.title || "");
+                var coverUrl = $('<input type="url" class="large-text pb-album-cover-input" placeholder="Cover photo URL">').val(cover.url || "");
+                var coverAlt = $('<input type="text" class="large-text pb-album-cover-alt-input" placeholder="Cover alt text">').val(cover.alt || "");
+                var actions = $('<div class="pb-album-actions"></div>');
+                var selectCover = $('<button type="button" class="button pb-album-cover-select">Select Cover</button>');
+                var addPhoto = $('<button type="button" class="button button-secondary pb-album-photo-add">Add Photo</button>');
+                var removeAlbum = $('<button type="button" class="button-link-delete pb-album-remove">Remove Album</button>');
+                var photos = $('<div class="pb-album-photos"></div>');
+
+                fields.append(title, coverUrl, coverAlt);
+                actions.append(selectCover, addPhoto, removeAlbum);
+                head.append(preview, fields, actions);
+                card.append(head, photos);
+                manager.find(".pb-album-list").append(card);
+
+                (album.images || []).forEach(function (image) {
+                    createAlbumPhotoRow(card, image);
+                });
+
+                serializeAlbums(manager);
             }
 
             function initCardManager(textarea) {
@@ -1026,6 +1322,21 @@ function prashant_bootstrap_render_profile_pages_settings_page() {
 
                 parseCardRows(input.val()).forEach(function (row) {
                     createCardRow(manager, row);
+                });
+            }
+
+            function initAlbumManager(textarea) {
+                var input = $(textarea);
+                var manager = $('<div class="pb-album-manager"></div>');
+                var list = $('<div class="pb-album-list"></div>');
+                var add = $('<button type="button" class="button button-secondary pb-album-add">Add Album</button>');
+                var albums = parseAlbums(input.val());
+
+                manager.append(list, add);
+                input.after(manager);
+
+                albums.forEach(function (album) {
+                    createAlbumCard(manager, album);
                 });
             }
 
@@ -1053,6 +1364,14 @@ function prashant_bootstrap_render_profile_pages_settings_page() {
                 createCardRow($(this).closest(".pb-card-manager"), { title: "", text: "", image: "" });
             });
 
+            $(document).on("click", ".pb-album-add", function () {
+                createAlbumCard($(this).closest(".pb-album-manager"), { title: "", cover: { url: "", alt: "" }, images: [] });
+            });
+
+            $(document).on("click", ".pb-album-photo-add", function () {
+                createAlbumPhotoRow($(this).closest(".pb-album-card"), { url: "", alt: "" });
+            });
+
             $(document).on("click", ".pb-media-remove", function () {
                 var manager = $(this).closest(".pb-media-manager");
                 $(this).closest(".pb-media-row").remove();
@@ -1063,6 +1382,18 @@ function prashant_bootstrap_render_profile_pages_settings_page() {
                 var manager = $(this).closest(".pb-card-manager");
                 $(this).closest(".pb-card-row").remove();
                 serializeCardRows(manager);
+            });
+
+            $(document).on("click", ".pb-album-remove", function () {
+                var manager = $(this).closest(".pb-album-manager");
+                $(this).closest(".pb-album-card").remove();
+                serializeAlbums(manager);
+            });
+
+            $(document).on("click", ".pb-album-photo-remove", function () {
+                var manager = $(this).closest(".pb-album-manager");
+                $(this).closest(".pb-album-photo-row").remove();
+                serializeAlbums(manager);
             });
 
             $(document).on("input", ".pb-media-row input", function () {
@@ -1080,6 +1411,18 @@ function prashant_bootstrap_render_profile_pages_settings_page() {
                 serializeCardRows(manager);
             });
 
+            $(document).on("input", ".pb-album-card input", function () {
+                var card = $(this).closest(".pb-album-card");
+                var manager = card.closest(".pb-album-manager");
+
+                card.find(".pb-album-cover-preview").attr("src", card.find(".pb-album-cover-input").val());
+                card.find(".pb-album-photo-row").each(function () {
+                    var row = $(this);
+                    row.find(".pb-album-photo-preview").attr("src", row.find(".pb-album-photo-url").val());
+                });
+                serializeAlbums(manager);
+            });
+
             $(document).on("click", ".pb-media-select", function () {
                 var row = $(this).closest(".pb-media-row");
                 var manager = row.closest(".pb-media-manager");
@@ -1095,6 +1438,57 @@ function prashant_bootstrap_render_profile_pages_settings_page() {
                     row.find(".pb-media-alt").val(attachment.alt || attachment.title || "");
                     row.find(".pb-media-preview").attr("src", attachment.url);
                     serializeRows(manager);
+                });
+
+                frame.open();
+            });
+
+            $(document).on("click", ".pb-album-cover-select", function () {
+                var card = $(this).closest(".pb-album-card");
+                var manager = card.closest(".pb-album-manager");
+                var frame = wp.media({
+                    title: "Select album cover",
+                    button: { text: "Use as cover" },
+                    multiple: false
+                });
+
+                frame.on("select", function () {
+                    var attachment = frame.state().get("selection").first().toJSON();
+                    card.find(".pb-album-cover-input").val(attachment.url);
+                    card.find(".pb-album-cover-alt-input").val(attachment.alt || attachment.title || card.find(".pb-album-title-input").val());
+                    card.find(".pb-album-cover-preview").attr("src", attachment.url);
+                    serializeAlbums(manager);
+                });
+
+                frame.open();
+            });
+
+            $(document).on("click", ".pb-album-photo-select", function () {
+                var row = $(this).closest(".pb-album-photo-row");
+                var manager = row.closest(".pb-album-manager");
+                var frame = wp.media({
+                    title: "Select album photos",
+                    button: { text: "Add selected photos" },
+                    multiple: true
+                });
+
+                frame.on("select", function () {
+                    var selection = frame.state().get("selection").toJSON();
+
+                    selection.forEach(function (attachment, index) {
+                        if (index === 0) {
+                            row.find(".pb-album-photo-url").val(attachment.url);
+                            row.find(".pb-album-photo-alt").val(attachment.alt || attachment.title || "");
+                            row.find(".pb-album-photo-preview").attr("src", attachment.url);
+                        } else {
+                            createAlbumPhotoRow(row.closest(".pb-album-card"), {
+                                url: attachment.url,
+                                alt: attachment.alt || attachment.title || ""
+                            });
+                        }
+                    });
+
+                    serializeAlbums(manager);
                 });
 
                 frame.open();
@@ -1125,6 +1519,9 @@ function prashant_bootstrap_render_profile_pages_settings_page() {
                 });
                 $(".pb-card-textarea").each(function () {
                     initCardManager(this);
+                });
+                $(".pb-album-textarea").each(function () {
+                    initAlbumManager(this);
                 });
             });
         })(jQuery);

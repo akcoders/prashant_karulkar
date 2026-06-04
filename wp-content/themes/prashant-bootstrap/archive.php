@@ -12,7 +12,7 @@ get_header();
     <div class="container">
         <div class="row justify-content-center mb-5">
             <div class="col-lg-8 text-center">
-                <p class="section-eyebrow mb-3"><?php esc_html_e( 'Archive', 'prashant-bootstrap' ); ?></p>
+                <p class="section-eyebrow mb-3"><?php esc_html_e( 'Collection', 'prashant-bootstrap' ); ?></p>
                 <h1 class="display-font"><?php the_archive_title(); ?></h1>
                 <?php if ( get_the_archive_description() ) : ?>
                     <div class="text-secondary"><?php the_archive_description(); ?></div>

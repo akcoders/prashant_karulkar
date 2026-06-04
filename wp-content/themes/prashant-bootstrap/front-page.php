@@ -19,6 +19,7 @@ $keyword_line     = 'Corporate Member- WCFA, Davos | Optimist Visionary Entrepre
 $hero_quote       = "Believe in yourself, that's where the magic begins.";
 $daily_quotes     = prashant_bootstrap_get_daily_quotes();
 $daily_quote      = ! empty( $daily_quotes ) ? $daily_quotes[ (int) current_time( 'z' ) % count( $daily_quotes ) ] : 'Purpose-led thinking builds enduring legacy.';
+$today_quote_date = wp_date( 'F j, Y' );
 $carousel_slides  = array(
     array(
         'eyebrow' => 'Recognition',
@@ -40,14 +41,12 @@ $carousel_slides  = array(
     ),
     array(
         'eyebrow' => 'Service',
-        'title'   => 'A visual archive of purpose-led engagement.',
+        'title'   => 'A visual collection of purpose-led engagement.',
         'image'   => $home_images['slider-image-4.jpg'],
         'tag'     => 'Institutional visit',
     ),
 );
 $felicitations    = array(
-    'First generation entrepreneur and social reformer with active interests in real estate, insurance, AIF, news media, sand mining, pharma, solar, FMCG.',
-    'Head of Karulkar Pratishthan, a five decade old non-profit family foundation dedicated to the welfare and education of underprivileged section of the society impacting lives of 30,000+ families without donations or fundraising from any external sources, through a team of 10,000+ volunteers on ground.',
     'Felicitated by the Hon\'ble Home Minister of India, Shri Amit Shah, for social work and activities for the welfare of the nation, at the event of book launch "Karmayoddha," chronicling the public life of the Hon\'ble Prime Minister of India, Shri Narendra Modi, for his contributions as a Co-Author and Initiative Partner in publishing the book.',
     'Felicitated for social contributions and as a Young Entrepreneur by RSS Sarsanghchalak Shri Mohan Bhagwat, in the presence of the Hon\'ble Vice President of India, Shri Venkaiah Naidu, at Vigyan Bhawan, New Delhi, during the launch of the book "YogGranth."',
     'Felicitated and awarded with the "Achievers Award" by the Hon\'ble Finance Minister of India, Smt. Nirmala Sitharaman, during the "Swah 75" book launch.',
@@ -149,15 +148,23 @@ $recent_posts = new WP_Query(
                                 </div>
                             </div>
                             <div class="author-story">
-                                <p class="author-story-lead"><?php echo esc_html( $felicitations[0] ); ?></p>
-                                <div class="collapse show" id="felicitationsPreview">
-                                    <p><?php echo esc_html( $felicitations[1] ); ?></p>
-                                    <p class="mb-0"><?php echo esc_html( $felicitations[2] ); ?></p>
-                                </div>
-                                <div class="collapse" id="felicitationsMore">
-                                    <?php for ( $i = 3; $i < count( $felicitations ); $i++ ) : ?>
-                                        <p><?php echo esc_html( $felicitations[ $i ] ); ?></p>
+                                <ul class="felicitation-list">
+                                    <?php for ( $i = 0; $i < min( 2, count( $felicitations ) ); $i++ ) : ?>
+                                        <li>
+                                            <span class="felicitation-marker"><?php echo esc_html( str_pad( (string) ( $i + 1 ), 2, '0', STR_PAD_LEFT ) ); ?></span>
+                                            <span><?php echo esc_html( $felicitations[ $i ] ); ?></span>
+                                        </li>
                                     <?php endfor; ?>
+                                </ul>
+                                <div class="collapse" id="felicitationsMore">
+                                    <ul class="felicitation-list felicitation-list-more">
+                                        <?php for ( $i = 2; $i < count( $felicitations ); $i++ ) : ?>
+                                            <li>
+                                                <span class="felicitation-marker"><?php echo esc_html( str_pad( (string) ( $i + 1 ), 2, '0', STR_PAD_LEFT ) ); ?></span>
+                                                <span><?php echo esc_html( $felicitations[ $i ] ); ?></span>
+                                            </li>
+                                        <?php endfor; ?>
+                                    </ul>
                                 </div>
                                 <button class="btn btn-link read-more-toggle px-0 mt-2" type="button" data-bs-toggle="collapse" data-bs-target="#felicitationsMore" aria-expanded="false" aria-controls="felicitationsMore">
                                     <?php esc_html_e( 'Read More', 'prashant-bootstrap' ); ?>
@@ -201,24 +208,47 @@ $recent_posts = new WP_Query(
                 </div>
 
                 <?php if ( $recent_posts->have_posts() ) : ?>
-                    <div class="home-news-grid">
-                        <?php
-                        while ( $recent_posts->have_posts() ) :
-                            $recent_posts->the_post();
-                            ?>
-                            <article <?php post_class( 'home-news-card' ); ?> data-reveal="up">
-                                <?php if ( has_post_thumbnail() ) : ?>
-                                    <a class="home-news-thumb" href="<?php the_permalink(); ?>"><?php the_post_thumbnail( 'large' ); ?></a>
-                                <?php endif; ?>
-                                <div class="home-news-body">
-                                    <p class="post-meta mb-2"><?php echo esc_html( get_the_date() ); ?></p>
-                                    <h3 class="home-news-title"><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></h3>
-                                    <p class="mb-3 text-secondary"><?php echo esc_html( wp_trim_words( get_the_excerpt(), 18 ) ); ?></p>
-                                    <a class="news-link" href="<?php the_permalink(); ?>"><?php esc_html_e( 'Read more', 'prashant-bootstrap' ); ?></a>
+                    <div id="homeNewsCarousel" class="carousel slide home-news-carousel" data-bs-ride="carousel" data-bs-interval="3500" data-bs-wrap="true">
+                        <div class="carousel-inner">
+                            <?php
+                            $news_posts       = $recent_posts->posts;
+                            $news_posts_count = count( $news_posts );
+                            foreach ( $news_posts as $post_index => $news_post ) :
+                                ?>
+                                <div class="carousel-item <?php echo 0 === $post_index ? 'active' : ''; ?>">
+                                    <div class="home-news-grid">
+                                        <?php
+                                        for ( $news_offset = 0; $news_offset < 3; $news_offset++ ) :
+                                            $post = $news_posts[ ( $post_index + $news_offset ) % $news_posts_count ];
+                                            setup_postdata( $post );
+                                            ?>
+                                            <article <?php post_class( 'home-news-card' ); ?> data-reveal="up">
+                                                <?php if ( has_post_thumbnail() ) : ?>
+                                                    <a class="home-news-thumb" href="<?php the_permalink(); ?>"><?php the_post_thumbnail( 'large' ); ?></a>
+                                                <?php endif; ?>
+                                                <div class="home-news-body">
+                                                    <p class="post-meta mb-2"><?php echo esc_html( get_the_date() ); ?></p>
+                                                    <h3 class="home-news-title"><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></h3>
+                                                    <p class="mb-3 text-secondary"><?php echo esc_html( wp_trim_words( get_the_excerpt(), 18 ) ); ?></p>
+                                                    <a class="news-link" href="<?php the_permalink(); ?>"><?php esc_html_e( 'Read more', 'prashant-bootstrap' ); ?></a>
+                                                </div>
+                                            </article>
+                                        <?php endfor; ?>
+                                    </div>
                                 </div>
-                            </article>
-                        <?php endwhile; ?>
-                        <?php wp_reset_postdata(); ?>
+                            <?php endforeach; ?>
+                            <?php wp_reset_postdata(); ?>
+                        </div>
+                        <?php if ( $recent_posts->post_count > 1 ) : ?>
+                            <button class="carousel-control-prev home-news-control home-news-control-prev" type="button" data-bs-target="#homeNewsCarousel" data-bs-slide="prev">
+                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden"><?php esc_html_e( 'Previous', 'prashant-bootstrap' ); ?></span>
+                            </button>
+                            <button class="carousel-control-next home-news-control home-news-control-next" type="button" data-bs-target="#homeNewsCarousel" data-bs-slide="next">
+                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden"><?php esc_html_e( 'Next', 'prashant-bootstrap' ); ?></span>
+                            </button>
+                        <?php endif; ?>
                     </div>
                 <?php endif; ?>
             </section>
@@ -266,8 +296,13 @@ $recent_posts = new WP_Query(
                     </div>
                     <div class="col-lg-6">
                         <div id="daily-quote" class="card-shell bottom-panel quote-panel">
-                            <p class="section-eyebrow mb-3"><?php esc_html_e( 'Daily Quote', 'prashant-bootstrap' ); ?></p>
-                            <blockquote class="daily-quote mb-0"><?php echo esc_html( $daily_quote ); ?></blockquote>
+                            <div class="quote-panel-inner">
+                                <div class="quote-panel-top">
+                                    <p class="section-eyebrow mb-0"><?php esc_html_e( "Today's Quote", 'prashant-bootstrap' ); ?></p>
+                                    <time class="quote-date" datetime="<?php echo esc_attr( wp_date( 'Y-m-d' ) ); ?>"><?php echo esc_html( $today_quote_date ); ?></time>
+                                </div>
+                                <blockquote class="daily-quote mb-0"><?php echo esc_html( $daily_quote ); ?></blockquote>
+                            </div>
                         </div>
                     </div>
                 </div>

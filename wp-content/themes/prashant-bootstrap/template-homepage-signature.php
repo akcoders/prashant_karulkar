@@ -178,7 +178,7 @@ $recent_posts = new WP_Query(
                     <?php else : ?>
                         <div class="col-12" data-reveal="up">
                             <div class="signature-editorial-card">
-                                <h2 class="signature-section-title mb-0"><?php esc_html_e( 'A living archive of profile stories, photo highlights, and public updates.', 'prashant-bootstrap' ); ?></h2>
+                                <h2 class="signature-section-title mb-0"><?php esc_html_e( 'A living collection of profile stories, photo highlights, and public updates.', 'prashant-bootstrap' ); ?></h2>
                             </div>
                         </div>
                     <?php endif; ?>

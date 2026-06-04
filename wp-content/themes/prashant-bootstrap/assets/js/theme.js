@@ -5,10 +5,16 @@ var prashantBootstrapInit = function () {
     var revealItems = document.querySelectorAll("[data-reveal]");
 
     if (preloader) {
-        var preloaderStartedAt = Date.now();
+        var preloaderStartedAt = window.PRASHANT_PRELOADER_STARTED || Date.now();
         var minimumPreloaderTime = 3000;
+        var preloaderHidden = false;
 
         var hidePreloader = function () {
+            if (preloaderHidden) {
+                return;
+            }
+
+            preloaderHidden = true;
             var elapsed = Date.now() - preloaderStartedAt;
             var remaining = Math.max(minimumPreloaderTime - elapsed, 0);
 
@@ -22,13 +28,14 @@ var prashantBootstrapInit = function () {
             }, remaining);
         };
 
+        window.setTimeout(hidePreloader, minimumPreloaderTime + 350);
+
         if (document.readyState === "complete") {
             hidePreloader();
         } else {
             window.addEventListener("load", function () {
                 hidePreloader();
             });
-            window.setTimeout(hidePreloader, 3200);
         }
     }
 
@@ -96,4 +103,3 @@ if (document.readyState !== "loading") {
 } else {
     document.addEventListener("DOMContentLoaded", prashantBootstrapInit);
 }
-
