@@ -8,6 +8,7 @@
 require get_template_directory() . '/inc/class-prashant-bootstrap-navwalker.php';
 require get_template_directory() . '/inc/theme-options.php';
 require get_template_directory() . '/inc/profile-pages.php';
+require get_template_directory() . '/inc/home-slides.php';
 
 if ( ! isset( $content_width ) ) {
     $content_width = 1200;

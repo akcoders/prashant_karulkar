@@ -20,32 +20,34 @@ $hero_quote       = "Believe in yourself, that's where the magic begins.";
 $daily_quotes     = prashant_bootstrap_get_daily_quotes();
 $daily_quote      = ! empty( $daily_quotes ) ? $daily_quotes[ (int) current_time( 'z' ) % count( $daily_quotes ) ] : 'Purpose-led thinking builds enduring legacy.';
 $today_quote_date = wp_date( 'F j, Y' );
-$carousel_slides  = array(
+$default_slides   = array(
     array(
         'eyebrow' => 'Recognition',
         'title'   => 'Public life, media presence, and institutional recognition.',
+        'content' => '',
         'image'   => $home_images['slider-image-1.jpg'],
-        'tag'     => 'Featured press',
     ),
     array(
         'eyebrow' => 'Leadership',
         'title'   => 'Conversations that connect governance, enterprise, and people.',
+        'content' => '',
         'image'   => $home_images['slider-image-2.jpg'],
-        'tag'     => 'Official meeting',
     ),
     array(
         'eyebrow' => 'Impact',
         'title'   => 'A journey shaped by entrepreneurship, service, and influence.',
+        'content' => '',
         'image'   => $home_images['slider-image-3.jpg'],
-        'tag'     => 'Presentation moment',
     ),
     array(
         'eyebrow' => 'Service',
         'title'   => 'A visual collection of purpose-led engagement.',
+        'content' => '',
         'image'   => $home_images['slider-image-4.jpg'],
-        'tag'     => 'Institutional visit',
     ),
 );
+$carousel_slides  = prashant_bootstrap_get_home_slides();
+$carousel_slides  = ! empty( $carousel_slides ) ? $carousel_slides : $default_slides;
 $felicitations    = array(
     'Felicitated by the Hon\'ble Home Minister of India, Shri Amit Shah, for social work and activities for the welfare of the nation, at the event of book launch "Karmayoddha," chronicling the public life of the Hon\'ble Prime Minister of India, Shri Narendra Modi, for his contributions as a Co-Author and Initiative Partner in publishing the book.',
     'Felicitated for social contributions and as a Young Entrepreneur by RSS Sarsanghchalak Shri Mohan Bhagwat, in the presence of the Hon\'ble Vice President of India, Shri Venkaiah Naidu, at Vigyan Bhawan, New Delhi, during the launch of the book "YogGranth."',
@@ -115,6 +117,9 @@ $recent_posts = new WP_Query(
                                             <div class="col-lg-6">
                                                 <p class="hero-eyebrow mb-3"><?php echo esc_html( $slide['eyebrow'] ); ?></p>
                                                 <h2 class="hero-slide-title mb-3"><?php echo esc_html( $slide['title'] ); ?></h2>
+                                                <?php if ( ! empty( $slide['content'] ) ) : ?>
+                                                    <div class="hero-slide-content"><?php echo wp_kses_post( $slide['content'] ); ?></div>
+                                                <?php endif; ?>
                                             </div>
                                             <div class="col-lg-6">
                                                 <div class="hero-visual-shell">

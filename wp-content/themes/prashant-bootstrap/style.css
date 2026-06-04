@@ -846,6 +846,17 @@ img {
     line-height: 1.05;
 }
 
+.hero-slide-content {
+    max-width: 620px;
+    color: var(--pb-muted);
+    font-size: 1rem;
+    line-height: 1.75;
+}
+
+.hero-slide-content > :last-child {
+    margin-bottom: 0;
+}
+
 .hero-visual-shell {
     align-items: stretch;
     aspect-ratio: 4 / 3;
