@@ -873,7 +873,7 @@ img {
 .hero-slide-image {
     display: block;
     height: 100%;
-    object-fit: contain;
+    object-fit: cover;
     width: 100%;
 }
 
@@ -3268,6 +3268,7 @@ img {
 
 .hero-slide-image {
     height: 100% !important;
+    object-fit: cover !important;
     width: 100% !important;
 }
 
