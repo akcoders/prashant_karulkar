@@ -71,8 +71,12 @@ function prashant_bootstrap_widgets_init() {
 add_action( 'widgets_init', 'prashant_bootstrap_widgets_init' );
 
 function prashant_bootstrap_enqueue_assets() {
-    $theme   = wp_get_theme();
-    $version = $theme->get( 'Version' );
+    $theme        = wp_get_theme();
+    $version      = $theme->get( 'Version' );
+    $style_path   = get_stylesheet_directory() . '/style.css';
+    $script_path  = get_template_directory() . '/assets/js/theme.js';
+    $style_ver    = file_exists( $style_path ) ? (string) filemtime( $style_path ) : $version;
+    $script_ver   = file_exists( $script_path ) ? (string) filemtime( $script_path ) : $version;
 
     wp_enqueue_style(
         'prashant-bootstrap-fonts',
@@ -90,7 +94,7 @@ function prashant_bootstrap_enqueue_assets() {
         'prashant-bootstrap-style',
         get_stylesheet_uri(),
         array( 'prashant-bootstrap-fonts', 'prashant-bootstrap-framework' ),
-        $version
+        $style_ver
     );
 
     wp_enqueue_script(
@@ -104,7 +108,7 @@ function prashant_bootstrap_enqueue_assets() {
         'prashant-bootstrap-theme',
         get_template_directory_uri() . '/assets/js/theme.js',
         array( 'prashant-bootstrap-framework' ),
-        $version,
+        $script_ver,
         true
     );
 

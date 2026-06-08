@@ -19,6 +19,9 @@ $keyword_line     = 'Corporate Member- WCFA, Davos | Optimist Visionary Entrepre
 $hero_quote       = "Believe in yourself, that's where the magic begins.";
 $daily_quotes     = prashant_bootstrap_get_daily_quotes();
 $daily_quote      = ! empty( $daily_quotes ) ? $daily_quotes[ (int) current_time( 'z' ) % count( $daily_quotes ) ] : 'Purpose-led thinking builds enduring legacy.';
+$daily_quote_images = function_exists( 'prashant_bootstrap_get_daily_quote_images' ) ? prashant_bootstrap_get_daily_quote_images() : array();
+$daily_quote_image  = ! empty( $daily_quote_images ) ? $daily_quote_images[ (int) current_time( 'z' ) % count( $daily_quote_images ) ] : array();
+$daily_quote_is_image = ! empty( $daily_quote_image['url'] ) || ( function_exists( 'prashant_bootstrap_is_image_url' ) && prashant_bootstrap_is_image_url( $daily_quote ) );
 $today_quote_date = wp_date( 'F j, Y' );
 $default_slides   = array(
     array(
@@ -77,6 +80,37 @@ $recent_posts = new WP_Query(
 <main id="primary" class="site-main">
     <section class="author-home pt-4 pb-5">
         <div class="container author-home-container">
+            <section id="hero-slideshow" class="author-section pb-4">
+                <div class="hero-slider-shell card-shell">
+                    <div id="authorCarousel" class="carousel slide" data-bs-ride="carousel">
+                        <div class="carousel-indicators">
+                            <?php foreach ( $carousel_slides as $index => $slide ) : ?>
+                                <button type="button" data-bs-target="#authorCarousel" data-bs-slide-to="<?php echo esc_attr( $index ); ?>" class="<?php echo 0 === $index ? 'active' : ''; ?>" aria-current="<?php echo 0 === $index ? 'true' : 'false'; ?>" aria-label="<?php echo esc_attr( $slide['eyebrow'] ); ?>"></button>
+                            <?php endforeach; ?>
+                        </div>
+                        <div class="carousel-inner">
+                            <?php foreach ( $carousel_slides as $index => $slide ) : ?>
+                                <div class="carousel-item <?php echo 0 === $index ? 'active' : ''; ?>">
+                                    <div class="hero-slide">
+                                        <div class="hero-visual-shell">
+                                            <img class="hero-slide-image" src="<?php echo esc_url( $slide['image'] ); ?>" alt="<?php echo esc_attr( $slide['title'] ); ?>">
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#authorCarousel" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden"><?php esc_html_e( 'Previous', 'prashant-bootstrap' ); ?></span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#authorCarousel" data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden"><?php esc_html_e( 'Next', 'prashant-bootstrap' ); ?></span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
             <div class="author-section author-intro home-premium-hero">
                 <div class="home-hero-shell">
                     <div class="row align-items-center g-4">
@@ -101,51 +135,9 @@ $recent_posts = new WP_Query(
                 </div>
             </div>
 
-            <section id="hero-slideshow" class="author-section pb-4">
-                <div class="hero-slider-shell card-shell">
-                    <div id="authorCarousel" class="carousel slide" data-bs-ride="carousel">
-                        <div class="carousel-indicators">
-                            <?php foreach ( $carousel_slides as $index => $slide ) : ?>
-                                <button type="button" data-bs-target="#authorCarousel" data-bs-slide-to="<?php echo esc_attr( $index ); ?>" class="<?php echo 0 === $index ? 'active' : ''; ?>" aria-current="<?php echo 0 === $index ? 'true' : 'false'; ?>" aria-label="<?php echo esc_attr( $slide['eyebrow'] ); ?>"></button>
-                            <?php endforeach; ?>
-                        </div>
-                        <div class="carousel-inner">
-                            <?php foreach ( $carousel_slides as $index => $slide ) : ?>
-                                <div class="carousel-item <?php echo 0 === $index ? 'active' : ''; ?>">
-                                    <div class="hero-slide">
-                                        <div class="row align-items-center g-4">
-                                            <div class="col-lg-6">
-                                                <p class="hero-eyebrow mb-3"><?php echo esc_html( $slide['eyebrow'] ); ?></p>
-                                                <h2 class="hero-slide-title mb-3"><?php echo esc_html( $slide['title'] ); ?></h2>
-                                                <?php if ( ! empty( $slide['content'] ) ) : ?>
-                                                    <div class="hero-slide-content"><?php echo wp_kses_post( $slide['content'] ); ?></div>
-                                                <?php endif; ?>
-                                            </div>
-                                            <div class="col-lg-6">
-                                                <div class="hero-visual-shell">
-                                                    <img class="hero-slide-image" src="<?php echo esc_url( $slide['image'] ); ?>" alt="<?php echo esc_attr( $slide['title'] ); ?>">
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
-                        </div>
-                        <button class="carousel-control-prev" type="button" data-bs-target="#authorCarousel" data-bs-slide="prev">
-                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                            <span class="visually-hidden"><?php esc_html_e( 'Previous', 'prashant-bootstrap' ); ?></span>
-                        </button>
-                        <button class="carousel-control-next" type="button" data-bs-target="#authorCarousel" data-bs-slide="next">
-                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                            <span class="visually-hidden"><?php esc_html_e( 'Next', 'prashant-bootstrap' ); ?></span>
-                        </button>
-                    </div>
-                </div>
-            </section>
-
             <section class="author-section pt-2">
                 <div class="row g-4 align-items-start">
-                    <div class="col-xl-4">
+                    <div class="col-xl-3">
                         <div id="top-felicitations" class="card-shell info-panel mb-4">
                             <div class="d-flex justify-content-between align-items-start gap-3 mb-4">
                                 <div>
@@ -155,19 +147,13 @@ $recent_posts = new WP_Query(
                             <div class="author-story">
                                 <ul class="felicitation-list">
                                     <?php for ( $i = 0; $i < min( 2, count( $felicitations ) ); $i++ ) : ?>
-                                        <li>
-                                            <span class="felicitation-marker"><?php echo esc_html( str_pad( (string) ( $i + 1 ), 2, '0', STR_PAD_LEFT ) ); ?></span>
-                                            <span><?php echo esc_html( $felicitations[ $i ] ); ?></span>
-                                        </li>
+                                        <li><?php echo esc_html( $felicitations[ $i ] ); ?></li>
                                     <?php endfor; ?>
                                 </ul>
                                 <div class="collapse" id="felicitationsMore">
                                     <ul class="felicitation-list felicitation-list-more">
                                         <?php for ( $i = 2; $i < count( $felicitations ); $i++ ) : ?>
-                                            <li>
-                                                <span class="felicitation-marker"><?php echo esc_html( str_pad( (string) ( $i + 1 ), 2, '0', STR_PAD_LEFT ) ); ?></span>
-                                                <span><?php echo esc_html( $felicitations[ $i ] ); ?></span>
-                                            </li>
+                                            <li><?php echo esc_html( $felicitations[ $i ] ); ?></li>
                                         <?php endfor; ?>
                                     </ul>
                                 </div>
@@ -179,7 +165,7 @@ $recent_posts = new WP_Query(
 
                     </div>
 
-                    <div class="col-xl-8">
+                    <div class="col-xl-9">
                         <div id="achievements-panel" class="card-shell achievement-panel">
                             <div class="d-flex justify-content-between align-items-start gap-3 mb-4">
                                 <div>
@@ -300,13 +286,17 @@ $recent_posts = new WP_Query(
                         </div>
                     </div>
                     <div class="col-lg-6">
-                        <div id="daily-quote" class="card-shell bottom-panel quote-panel">
+                        <div id="daily-quote" class="card-shell bottom-panel quote-panel <?php echo $daily_quote_is_image ? 'quote-panel-has-image' : ''; ?>">
                             <div class="quote-panel-inner">
                                 <div class="quote-panel-top">
                                     <p class="section-eyebrow mb-0"><?php esc_html_e( "Today's Quote", 'prashant-bootstrap' ); ?></p>
                                     <time class="quote-date" datetime="<?php echo esc_attr( wp_date( 'Y-m-d' ) ); ?>"><?php echo esc_html( $today_quote_date ); ?></time>
                                 </div>
-                                <blockquote class="daily-quote mb-0"><?php echo esc_html( $daily_quote ); ?></blockquote>
+                                <?php if ( $daily_quote_is_image ) : ?>
+                                    <img class="daily-quote-image" src="<?php echo esc_url( ! empty( $daily_quote_image['url'] ) ? $daily_quote_image['url'] : $daily_quote ); ?>" alt="<?php echo esc_attr( ! empty( $daily_quote_image['alt'] ) ? $daily_quote_image['alt'] : __( "Today's Quote", 'prashant-bootstrap' ) ); ?>">
+                                <?php else : ?>
+                                    <blockquote class="daily-quote mb-0"><?php echo esc_html( $daily_quote ); ?></blockquote>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>

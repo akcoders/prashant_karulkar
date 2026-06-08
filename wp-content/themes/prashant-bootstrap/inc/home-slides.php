@@ -119,6 +119,22 @@ function prashant_bootstrap_get_home_slides() {
             continue;
         }
 
+        $image_path = wp_parse_url( $image, PHP_URL_PATH );
+
+        if ( $image_path ) {
+            $uploads = wp_get_upload_dir();
+            $uploads_path = wp_parse_url( $uploads['baseurl'], PHP_URL_PATH );
+
+            if ( $uploads_path && 0 === strpos( $image_path, $uploads_path ) ) {
+                $relative_image = ltrim( substr( $image_path, strlen( $uploads_path ) ), '/' );
+                $local_image    = trailingslashit( $uploads['basedir'] ) . str_replace( '/', DIRECTORY_SEPARATOR, $relative_image );
+
+                if ( ! file_exists( $local_image ) ) {
+                    continue;
+                }
+            }
+        }
+
         $slides[] = array(
             'eyebrow' => get_post_meta( $slide_post->ID, '_prashant_slide_eyebrow', true ),
             'title'   => get_the_title( $slide_post ),

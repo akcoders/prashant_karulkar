@@ -976,11 +976,10 @@ img {
 }
 
 .felicitation-list {
-    display: grid;
-    gap: 0.85rem;
-    list-style: none;
+    display: block;
+    list-style: disc;
     margin: 0;
-    padding: 0;
+    padding-left: 1.25rem;
 }
 
 .felicitation-list-more {
@@ -988,28 +987,33 @@ img {
 }
 
 .felicitation-list li {
-    align-items: flex-start;
-    background: rgba(255, 255, 255, 0.74);
-    border: 1px solid rgba(27, 103, 176, 0.1);
-    border-radius: 1rem;
-    display: grid;
-    gap: 0.85rem;
-    grid-template-columns: 2.65rem 1fr;
-    padding: 0.9rem;
+    color: var(--pb-ink);
+    padding-left: 0.15rem;
 }
 
-.felicitation-marker {
-    align-items: center;
-    background: linear-gradient(180deg, rgba(216, 156, 74, 0.22), rgba(27, 103, 176, 0.08));
-    border-radius: 0.8rem;
-    color: var(--pb-primary-deep);
-    display: inline-flex;
-    font-size: 0.82rem;
-    font-weight: 800;
-    height: 2.4rem;
-    justify-content: center;
-    letter-spacing: 0.04em;
-    width: 2.4rem;
+.felicitation-list li + li {
+    margin-top: 0.75rem;
+}
+
+.felicitation-list li::marker {
+    color: var(--pb-accent);
+    font-size: 1.05rem;
+}
+
+#top-felicitations .author-story {
+    max-width: none;
+}
+
+#top-felicitations .felicitation-list {
+    columns: 1;
+    max-width: none;
+}
+
+#top-felicitations .felicitation-list li {
+    line-height: 1.65;
+    overflow-wrap: normal;
+    white-space: normal;
+    word-break: normal;
 }
 
 .read-more-toggle {
@@ -1232,6 +1236,31 @@ img {
     max-width: 34rem;
     position: relative;
     z-index: 1;
+}
+
+.quote-panel-has-image {
+    justify-content: flex-start;
+    padding: 1rem;
+}
+
+.quote-panel-has-image::before,
+.quote-panel-has-image::after {
+    display: none;
+}
+
+.quote-panel-has-image .quote-panel-inner {
+    gap: 1rem;
+    padding-left: 0;
+}
+
+.daily-quote-image {
+    background: #f4efe6;
+    border-radius: 1rem;
+    display: block;
+    height: auto;
+    max-height: 28rem;
+    object-fit: contain;
+    width: 100%;
 }
 
 .quote-panel .section-eyebrow {
@@ -3023,5 +3052,431 @@ img {
     .profile-image-mosaic figure:nth-child(2),
     .profile-image-mosaic figure:nth-child(n+3) {
         grid-column: auto;
+    }
+}
+
+/*
+ * Site image policy: show complete images without crop or decorative overlap.
+ * Keep these rules late in the file so page-specific image frames inherit them.
+ */
+.hero-slider-shell {
+    padding: 0.65rem;
+}
+
+.hero-slide {
+    min-height: 0;
+    padding: 0;
+}
+
+.hero-visual-shell {
+    align-items: center;
+    aspect-ratio: auto;
+    background: #f4efe6;
+    border-radius: 1.1rem;
+    box-shadow: none;
+    display: flex;
+    height: clamp(140px, 22vw, 240px);
+    justify-content: center;
+    min-height: 0;
+    overflow: visible;
+}
+
+.hero-slide-image {
+    display: block;
+    height: 100%;
+    max-height: 100%;
+    max-width: 100%;
+    object-fit: contain;
+    width: 100%;
+}
+
+.home-hero-visual,
+.about-portrait-stage {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    min-height: 0;
+}
+
+.home-hero-main,
+.home-hero-float,
+.about-portrait-card,
+.about-portrait-1,
+.about-portrait-2,
+.about-portrait-3 {
+    bottom: auto;
+    height: auto;
+    left: auto;
+    position: relative;
+    right: auto;
+    top: auto;
+    transform: none;
+    width: 100%;
+}
+
+.home-hero-main,
+.home-hero-float,
+.about-portrait-card img {
+    aspect-ratio: 4 / 3;
+}
+
+.home-hero-main,
+.home-hero-float {
+    background: #f4efe6;
+    object-fit: contain;
+}
+
+.about-portrait-card {
+    align-self: start;
+}
+
+.about-portrait-card img,
+.home-news-thumb img,
+.insight-thumb img,
+.single-hero-thumb img,
+.lux-news-thumb img,
+.signature-news-thumb img,
+.profile-image-mosaic img,
+.profile-gallery-grid img,
+.profile-card-image,
+.page-accolades .profile-card-image,
+.profile-album-cover img,
+.profile-media-image-grid img {
+    background: #f4efe6;
+    height: auto;
+    max-height: none;
+    object-fit: contain;
+    transform: none;
+    width: 100%;
+}
+
+.home-news-thumb,
+.insight-thumb,
+.single-hero-thumb,
+.lux-news-thumb,
+.signature-news-thumb,
+.profile-card-media,
+.profile-album-cover,
+.profile-media-image-grid figure,
+.profile-image-mosaic figure,
+.profile-gallery-grid figure,
+.about-portrait-card {
+    overflow: visible;
+}
+
+.home-news-card:hover .home-news-thumb img,
+.profile-album-card:hover .profile-album-cover img,
+.profile-album-card:focus .profile-album-cover img,
+.profile-media-image-grid figure:hover img,
+.lux-news-card:hover .lux-news-thumb img,
+.signature-news-card:hover .signature-news-thumb img {
+    transform: none;
+}
+
+.page-awards-achievements-felicitations .profile-card-body {
+    margin: 1rem 0 0;
+}
+
+.profile-image-mosaic figure,
+.profile-image-mosaic figure:nth-child(1),
+.profile-image-mosaic figure:nth-child(2),
+.profile-image-mosaic figure:nth-child(n+3) {
+    grid-column: span 2;
+}
+
+@media (max-width: 991.98px) {
+    .home-hero-visual,
+    .about-portrait-stage {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .hero-visual-shell {
+        height: clamp(130px, 30vw, 220px);
+    }
+}
+
+@media (max-width: 767.98px) {
+    .hero-visual-shell {
+        height: clamp(120px, 42vw, 190px);
+    }
+
+    .home-hero-visual,
+    .about-portrait-stage {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-image-mosaic figure,
+    .profile-image-mosaic figure:nth-child(1),
+    .profile-image-mosaic figure:nth-child(2),
+    .profile-image-mosaic figure:nth-child(n+3) {
+        grid-column: auto;
+    }
+}
+
+/* Final override: never crop website photos inside designed frames. */
+.hero-visual-shell,
+.home-hero-visual,
+.home-news-thumb,
+.insight-thumb,
+.single-hero-thumb,
+.lux-news-thumb,
+.signature-news-thumb,
+.profile-card-media,
+.profile-album-cover,
+.profile-image-mosaic figure,
+.profile-gallery-grid figure,
+.profile-media-image-grid figure,
+.about-portrait-card,
+.about-portrait-stage {
+    overflow: visible !important;
+}
+
+.hero-slide-image,
+.home-hero-main,
+.home-hero-float,
+.home-news-thumb img,
+.insight-thumb img,
+.single-hero-thumb img,
+.lux-news-thumb img,
+.signature-news-thumb img,
+.profile-image-mosaic img,
+.profile-gallery-grid img,
+.profile-card-image,
+.page-accolades .profile-card-image,
+.profile-album-cover img,
+.profile-media-image-grid img,
+.about-portrait-card img,
+.daily-quote-image {
+    object-fit: contain !important;
+    object-position: center center !important;
+    transform: none !important;
+}
+
+.home-news-thumb img,
+.insight-thumb img,
+.single-hero-thumb img,
+.lux-news-thumb img,
+.signature-news-thumb img,
+.profile-card-image,
+.page-accolades .profile-card-image,
+.profile-album-cover img,
+.profile-media-image-grid img,
+.profile-gallery-grid img,
+.profile-image-mosaic img,
+.about-portrait-card img {
+    background: #f4efe6 !important;
+    height: auto !important;
+    max-height: none !important;
+    width: 100% !important;
+}
+
+/* Final Felicitations reset: normal readable bullets, no card/grid layout. */
+#top-felicitations .felicitation-list {
+    display: block !important;
+    list-style: disc outside !important;
+    margin: 0 !important;
+    max-width: none !important;
+    padding-left: 1.4rem !important;
+}
+
+#top-felicitations .felicitation-list li {
+    background: transparent !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    color: var(--pb-ink) !important;
+    display: list-item !important;
+    grid-template-columns: none !important;
+    line-height: 1.65 !important;
+    margin: 0 !important;
+    overflow-wrap: normal !important;
+    padding: 0 !important;
+    white-space: normal !important;
+    width: auto !important;
+    word-break: normal !important;
+}
+
+#top-felicitations .felicitation-list li + li {
+    margin-top: 0.75rem !important;
+}
+
+#top-felicitations .felicitation-list li::marker {
+    color: var(--pb-accent) !important;
+    font-size: 1.05rem !important;
+}
+
+@media (min-width: 1200px) {
+    #top-felicitations,
+    #achievements-panel {
+        height: 100%;
+    }
+
+    #top-felicitations .felicitation-list li {
+        font-size: 0.88rem !important;
+        line-height: 1.45 !important;
+    }
+}
+
+/* Creative, non-overlapping homepage profile image grid. */
+.home-premium-hero .home-hero-visual {
+    background:
+        radial-gradient(circle at 14% 18%, rgba(216, 156, 74, 0.18), transparent 30%),
+        radial-gradient(circle at 92% 82%, rgba(27, 103, 176, 0.16), transparent 34%),
+        rgba(255, 255, 255, 0.46);
+    border: 1px solid rgba(27, 103, 176, 0.1);
+    border-radius: 1.6rem;
+    display: grid !important;
+    gap: 1rem;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.9fr);
+    grid-template-rows: repeat(2, minmax(10rem, 1fr));
+    min-height: 24rem;
+    padding: 1rem;
+    position: relative;
+}
+
+.home-premium-hero .home-hero-main,
+.home-premium-hero .home-hero-float {
+    align-self: stretch;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(246, 240, 225, 0.76)),
+        #f4efe6;
+    border: 0.55rem solid rgba(255, 255, 255, 0.92);
+    border-radius: 1.2rem;
+    box-shadow: 0 1rem 2.2rem rgba(22, 54, 95, 0.12);
+    height: 100% !important;
+    justify-self: stretch;
+    min-height: 0;
+    object-fit: contain !important;
+    position: relative !important;
+    transform: none !important;
+    width: 100% !important;
+}
+
+.home-premium-hero .home-hero-main {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+}
+
+.home-premium-hero .home-hero-float-a {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+.home-premium-hero .home-hero-float-b {
+    grid-column: 2;
+    grid-row: 2;
+}
+
+@media (max-width: 1199.98px) {
+    .home-premium-hero .home-hero-visual {
+        grid-template-rows: repeat(2, minmax(9rem, 1fr));
+        min-height: 20rem;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .home-premium-hero .home-hero-visual {
+        grid-template-columns: 1fr;
+        grid-template-rows: none;
+        min-height: 0;
+    }
+
+    .home-premium-hero .home-hero-main,
+    .home-premium-hero .home-hero-float-a,
+    .home-premium-hero .home-hero-float-b {
+        grid-column: auto;
+        grid-row: auto;
+        height: auto !important;
+    }
+}
+
+/* Creative non-overlapping identity image panel. */
+.about-creative-shell .about-portrait-stage {
+    background:
+        radial-gradient(circle at 16% 18%, rgba(216, 156, 74, 0.22), transparent 30%),
+        radial-gradient(circle at 86% 76%, rgba(27, 103, 176, 0.16), transparent 34%),
+        rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(27, 103, 176, 0.1);
+    border-radius: 1.5rem;
+    display: grid !important;
+    gap: 1rem;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    grid-template-rows: repeat(2, minmax(12rem, 1fr));
+    min-height: 30rem;
+    padding: 1rem;
+    position: relative !important;
+}
+
+.about-creative-shell .about-portrait-card {
+    align-self: stretch;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(246, 240, 225, 0.74)),
+        #f4efe6;
+    border: 0.6rem solid rgba(255, 255, 255, 0.94);
+    border-radius: 1.25rem;
+    box-shadow: 0 1.1rem 2.4rem rgba(22, 54, 95, 0.13);
+    height: 100% !important;
+    justify-self: stretch;
+    left: auto !important;
+    margin: 0 !important;
+    min-height: 0;
+    overflow: hidden !important;
+    padding: 0 !important;
+    position: relative !important;
+    right: auto !important;
+    top: auto !important;
+    transform: none !important;
+    width: 100% !important;
+}
+
+.about-creative-shell .about-portrait-card img {
+    background: #f4efe6 !important;
+    border-radius: 0.85rem;
+    display: block;
+    height: 100% !important;
+    object-fit: contain !important;
+    object-position: center center !important;
+    width: 100% !important;
+}
+
+.about-creative-shell .about-portrait-1 {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+}
+
+.about-creative-shell .about-portrait-2 {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+.about-creative-shell .about-portrait-3 {
+    grid-column: 2;
+    grid-row: 2;
+}
+
+@media (max-width: 991.98px) {
+    .about-creative-shell .about-portrait-stage {
+        grid-template-rows: repeat(2, minmax(10rem, 1fr));
+        min-height: 24rem;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .about-creative-shell .about-portrait-stage {
+        grid-template-columns: 1fr;
+        grid-template-rows: none;
+        min-height: 0;
+    }
+
+    .about-creative-shell .about-portrait-1,
+    .about-creative-shell .about-portrait-2,
+    .about-creative-shell .about-portrait-3 {
+        grid-column: auto;
+        grid-row: auto;
+        height: auto !important;
+    }
+
+    .about-creative-shell .about-portrait-card img {
+        aspect-ratio: 4 / 3;
+        height: auto !important;
     }
 }
