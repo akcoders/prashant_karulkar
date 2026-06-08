@@ -15,8 +15,8 @@ $home_images      = array(
     'slider-image-3.jpg' => prashant_bootstrap_theme_image_media_url( 'slider-image-3.jpg', 'Impact highlight' ),
     'slider-image-4.jpg' => prashant_bootstrap_theme_image_media_url( 'slider-image-4.jpg', 'Service highlight' ),
 );
-$keyword_line     = 'Corporate Member- WCFA, Davos | Optimist Visionary Entrepreneur | Social Transformer | Philanthropist | Venture Capitalist | Experienced Investor';
-$hero_quote       = "Believe in yourself, that's where the magic begins.";
+$keyword_line     = $homepage_options['hero_keyword_line'];
+$hero_quote       = $homepage_options['hero_quote'];
 $daily_quotes     = prashant_bootstrap_get_daily_quotes();
 $daily_quote      = ! empty( $daily_quotes ) ? $daily_quotes[ (int) current_time( 'z' ) % count( $daily_quotes ) ] : 'Purpose-led thinking builds enduring legacy.';
 $daily_quote_images = function_exists( 'prashant_bootstrap_get_daily_quote_images' ) ? prashant_bootstrap_get_daily_quote_images() : array();
@@ -51,22 +51,40 @@ $default_slides   = array(
 );
 $carousel_slides  = prashant_bootstrap_get_home_slides();
 $carousel_slides  = ! empty( $carousel_slides ) ? $carousel_slides : $default_slides;
-$felicitations    = array(
-    'Felicitated by the Hon\'ble Home Minister of India, Shri Amit Shah, for social work and activities for the welfare of the nation, at the event of book launch "Karmayoddha," chronicling the public life of the Hon\'ble Prime Minister of India, Shri Narendra Modi, for his contributions as a Co-Author and Initiative Partner in publishing the book.',
-    'Felicitated for social contributions and as a Young Entrepreneur by RSS Sarsanghchalak Shri Mohan Bhagwat, in the presence of the Hon\'ble Vice President of India, Shri Venkaiah Naidu, at Vigyan Bhawan, New Delhi, during the launch of the book "YogGranth."',
-    'Felicitated and awarded with the "Achievers Award" by the Hon\'ble Finance Minister of India, Smt. Nirmala Sitharaman, during the "Swah 75" book launch.',
-    'Felicitated and awarded with the Tarun Bharat Wealth Creators - Young Achiever in Business World Award by Shri Nitin Gadkari Ji, Hon\'ble Minister of Roads, Transport and Highways of India.',
-    'Felicitated by Padma Shri Ujjwal Nikam, Special Public Prosecutor, for Karulkar Pratishthan\'s social service in rural and tribal areas.',
-    'Felicitated with Indian Navy Commendation Citation by Vice Chief of Naval Staff, Vice Admiral S. N. Ghormade, for contributions towards society.',
-    'Invited by Ratan Tata as the Chief Guest at the 59th Annual Award Ceremony of the ABCI Annual Awards pioneered by Late Naval Tata; a platform previously graced by eminent personalities such as Late Naval Tata, Late Nani Palkhivala, and Late Manohar Parrikar.',
-    'Felicitated at Bombay Stock Exchange (BSE), Mumbai, by Mr. G. N. Bajpai (Former Chairman, SEBI), Mr. Ashish Chauhan (MD and CEO, BSE), and Mr. Shailesh Haribhakti (Chairman, Blue Star Ltd.).',
-    'Awarded the Corona Devdoot Award (COVID-19 Wave) by the Hon\'ble Governor of Maharashtra, Shri Bhagat Singh Koshyari, for large-scale humanitarian work including food, shelter, migration support, sanitization drives, and rural outreach.',
-    'Honoured and awarded by Dr. Bhagwat Karad, Minister of State, Finance, Government of India, at the World Hindu Economic Forum - Mumbai Chapter, for business achievements and social responsibility.',
-);
+$felicitations    = prashant_bootstrap_get_felicitations();
 $achievements     = prashant_bootstrap_get_achievements();
 $corporate_lens   = prashant_bootstrap_get_corporate_lens_points();
 $linkedin_url     = $homepage_options['linkedin_profile_url'];
 $linkedin_embeds  = prashant_bootstrap_get_linkedin_embeds();
+$profile_images   = prashant_bootstrap_get_home_profile_images();
+$profile_images   = array_pad(
+    $profile_images,
+    3,
+    array(
+        'url' => '',
+        'alt' => get_bloginfo( 'name' ),
+    )
+);
+$profile_image_fallbacks = array(
+    array(
+        'url' => $home_images['slider-image-1.jpg'],
+        'alt' => get_bloginfo( 'name' ),
+    ),
+    array(
+        'url' => $home_images['slider-image-2.jpg'],
+        'alt' => '',
+    ),
+    array(
+        'url' => $home_images['slider-image-4.jpg'],
+        'alt' => '',
+    ),
+);
+
+foreach ( $profile_images as $index => $profile_image ) {
+    if ( empty( $profile_image['url'] ) && isset( $profile_image_fallbacks[ $index ] ) ) {
+        $profile_images[ $index ] = $profile_image_fallbacks[ $index ];
+    }
+}
 
 $recent_posts = new WP_Query(
     array(
@@ -115,20 +133,20 @@ $recent_posts = new WP_Query(
                 <div class="home-hero-shell">
                     <div class="row align-items-center g-4">
                         <div class="col-xl-7" data-reveal="up">
-                            <p class="hero-eyebrow mb-3"><?php esc_html_e( 'Official Profile', 'prashant-bootstrap' ); ?></p>
-                            <h1 class="author-title mb-3"><?php bloginfo( 'name' ); ?></h1>
+                            <p class="hero-eyebrow mb-3"><?php echo esc_html( $homepage_options['hero_eyebrow'] ); ?></p>
+                            <h1 class="author-title mb-3"><?php echo esc_html( $homepage_options['hero_title'] ); ?></h1>
                             <p class="author-keyword mb-4"><?php echo esc_html( $keyword_line ); ?></p>
                             <blockquote class="author-quote mb-4"><?php echo esc_html( $hero_quote ); ?></blockquote>
                             <div class="home-hero-actions">
-                                <a class="btn btn-primary rounded-pill px-4" href="<?php echo esc_url( home_url( '/about-prashant-karulkar/' ) ); ?>"><?php esc_html_e( 'Explore Profile', 'prashant-bootstrap' ); ?></a>
-                                <a class="btn btn-outline-dark rounded-pill px-4" href="<?php echo esc_url( home_url( '/picture-gallery/' ) ); ?>"><?php esc_html_e( 'View Gallery', 'prashant-bootstrap' ); ?></a>
+                                <a class="btn btn-primary rounded-pill px-4" href="<?php echo esc_url( $homepage_options['hero_primary_button_url'] ); ?>"><?php echo esc_html( $homepage_options['hero_primary_button_text'] ); ?></a>
+                                <a class="btn btn-outline-dark rounded-pill px-4" href="<?php echo esc_url( $homepage_options['hero_secondary_button_url'] ); ?>"><?php echo esc_html( $homepage_options['hero_secondary_button_text'] ); ?></a>
                             </div>
                         </div>
                         <div class="col-xl-5" data-reveal="left">
                             <div class="home-hero-visual">
-                                <img class="home-hero-main" src="<?php echo esc_url( $home_images['slider-image-1.jpg'] ); ?>" alt="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>">
-                                <img class="home-hero-float home-hero-float-a" src="<?php echo esc_url( $home_images['slider-image-2.jpg'] ); ?>" alt="">
-                                <img class="home-hero-float home-hero-float-b" src="<?php echo esc_url( $home_images['slider-image-4.jpg'] ); ?>" alt="">
+                                <img class="home-hero-main" src="<?php echo esc_url( $profile_images[0]['url'] ); ?>" alt="<?php echo esc_attr( $profile_images[0]['alt'] ); ?>">
+                                <img class="home-hero-float home-hero-float-a" src="<?php echo esc_url( $profile_images[1]['url'] ); ?>" alt="<?php echo esc_attr( $profile_images[1]['alt'] ); ?>">
+                                <img class="home-hero-float home-hero-float-b" src="<?php echo esc_url( $profile_images[2]['url'] ); ?>" alt="<?php echo esc_attr( $profile_images[2]['alt'] ); ?>">
                             </div>
                         </div>
                     </div>
@@ -141,7 +159,7 @@ $recent_posts = new WP_Query(
                         <div id="top-felicitations" class="card-shell info-panel mb-4">
                             <div class="d-flex justify-content-between align-items-start gap-3 mb-4">
                                 <div>
-                                    <h2 class="panel-title mb-0"><?php esc_html_e( 'Felicitations', 'prashant-bootstrap' ); ?></h2>
+                                    <h2 class="panel-title mb-0"><?php echo esc_html( $homepage_options['felicitations_title'] ); ?></h2>
                                 </div>
                             </div>
                             <div class="author-story">
@@ -169,8 +187,8 @@ $recent_posts = new WP_Query(
                         <div id="achievements-panel" class="card-shell achievement-panel">
                             <div class="d-flex justify-content-between align-items-start gap-3 mb-4">
                                 <div>
-                                    <p class="section-eyebrow mb-2"><?php esc_html_e( 'Achievements', 'prashant-bootstrap' ); ?></p>
-                                    <h2 class="panel-title mb-0"><?php esc_html_e( 'Achievements', 'prashant-bootstrap' ); ?></h2>
+                                    <p class="section-eyebrow mb-2"><?php echo esc_html( $homepage_options['achievements_eyebrow'] ); ?></p>
+                                    <h2 class="panel-title mb-0"><?php echo esc_html( $homepage_options['achievements_title'] ); ?></h2>
                                 </div>
                             </div>
                             <div class="achievement-scroll">
@@ -192,10 +210,10 @@ $recent_posts = new WP_Query(
             <section id="our-news" class="author-section home-news-feature">
                 <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-end mb-4">
                     <div>
-                        <p class="section-eyebrow mb-2"><?php esc_html_e( 'Latest Updates', 'prashant-bootstrap' ); ?></p>
-                        <h2 class="panel-title mb-0"><?php esc_html_e( 'News and Media Notes', 'prashant-bootstrap' ); ?></h2>
+                        <p class="section-eyebrow mb-2"><?php echo esc_html( $homepage_options['news_eyebrow'] ); ?></p>
+                        <h2 class="panel-title mb-0"><?php echo esc_html( $homepage_options['news_title'] ); ?></h2>
                     </div>
-                    <a class="news-link" href="<?php echo esc_url( home_url( '/media-coverage/' ) ); ?>"><?php esc_html_e( 'View media coverage', 'prashant-bootstrap' ); ?></a>
+                    <a class="news-link" href="<?php echo esc_url( $homepage_options['news_button_url'] ); ?>"><?php echo esc_html( $homepage_options['news_button_text'] ); ?></a>
                 </div>
 
                 <?php if ( $recent_posts->have_posts() ) : ?>
@@ -279,7 +297,7 @@ $recent_posts = new WP_Query(
                                 <div class="linkedin-lens-card mt-4">
                                     <a class="linkedin-link" href="<?php echo esc_url( $linkedin_url ); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html( $linkedin_url ); ?></a>
                                     <div class="mt-3">
-                                        <a class="btn btn-primary rounded-pill px-4" href="<?php echo esc_url( $linkedin_url ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Open LinkedIn Profile', 'prashant-bootstrap' ); ?></a>
+                                        <a class="btn btn-primary rounded-pill px-4" href="<?php echo esc_url( $linkedin_url ); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html( $homepage_options['linkedin_button_text'] ); ?></a>
                                     </div>
                                 </div>
                             <?php endif; ?>
@@ -289,7 +307,7 @@ $recent_posts = new WP_Query(
                         <div id="daily-quote" class="card-shell bottom-panel quote-panel <?php echo $daily_quote_is_image ? 'quote-panel-has-image' : ''; ?>">
                             <div class="quote-panel-inner">
                                 <div class="quote-panel-top">
-                                    <p class="section-eyebrow mb-0"><?php esc_html_e( "Today's Quote", 'prashant-bootstrap' ); ?></p>
+                                    <p class="section-eyebrow mb-0"><?php echo esc_html( $homepage_options['quote_eyebrow'] ); ?></p>
                                     <time class="quote-date" datetime="<?php echo esc_attr( wp_date( 'Y-m-d' ) ); ?>"><?php echo esc_html( $today_quote_date ); ?></time>
                                 </div>
                                 <?php if ( $daily_quote_is_image ) : ?>
