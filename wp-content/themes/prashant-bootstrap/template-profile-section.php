@@ -56,7 +56,7 @@ while ( have_posts() ) :
         }
     }
 
-    $profile_display_title   = $active_album ? $active_album['title'] : $data['title'];
+    $profile_display_title   = $active_album ? $active_album['title'] : ( isset( $data['title'] ) ? $data['title'] : '' );
     $profile_display_eyebrow = $active_album ? __( 'Gallery Album', 'prashant-bootstrap' ) : $data['eyebrow'];
     $profile_display_lead    = $active_album ? sprintf( __( '%s album from %s.', 'prashant-bootstrap' ), $active_album['title'], $data['title'] ) : ( isset( $data['lead'] ) ? $data['lead'] : '' );
     ?>
@@ -72,8 +72,12 @@ while ( have_posts() ) :
                                 <span><?php echo esc_html( $active_album['title'] ); ?></span>
                             <?php endif; ?>
                         </nav>
-                        <p class="section-eyebrow mb-3"><?php echo esc_html( $profile_display_eyebrow ); ?></p>
-                        <h1 class="profile-page-title mb-3"><?php echo esc_html( $profile_display_title ); ?></h1>
+                        <?php if ( ! empty( $profile_display_eyebrow ) ) : ?>
+                            <p class="section-eyebrow mb-3"><?php echo esc_html( $profile_display_eyebrow ); ?></p>
+                        <?php endif; ?>
+                        <?php if ( ! empty( $profile_display_title ) ) : ?>
+                            <h1 class="profile-page-title mb-3"><?php echo esc_html( $profile_display_title ); ?></h1>
+                        <?php endif; ?>
                         <?php if ( ! empty( $profile_display_lead ) ) : ?>
                             <p class="profile-lead mb-0"><?php echo esc_html( $profile_display_lead ); ?></p>
                         <?php endif; ?>
@@ -98,15 +102,25 @@ while ( have_posts() ) :
                             </div>
                             <div class="col-xl-7">
                                 <div class="about-creative-copy">
-                                    <p class="signature-kicker"><?php esc_html_e( 'The Identity', 'prashant-bootstrap' ); ?></p>
-                                    <h2 class="about-creative-title"><?php echo esc_html( $data['about_spotlight']['title'] ); ?></h2>
-                                    <p class="about-creative-text"><?php echo esc_html( $data['about_spotlight']['text'] ); ?></p>
-                                    <blockquote class="about-signature-quote"><?php echo esc_html( $data['about_spotlight']['quote'] ); ?></blockquote>
-                                    <div class="about-pill-row">
-                                        <?php foreach ( $data['about_spotlight']['pills'] as $pill ) : ?>
-                                            <span><?php echo esc_html( $pill ); ?></span>
-                                        <?php endforeach; ?>
-                                    </div>
+                                    <?php if ( ! empty( $data['about_spotlight']['title'] ) ) : ?>
+                                        <p class="signature-kicker"><?php esc_html_e( 'The Identity', 'prashant-bootstrap' ); ?></p>
+                                        <h2 class="about-creative-title"><?php echo esc_html( $data['about_spotlight']['title'] ); ?></h2>
+                                    <?php endif; ?>
+                                    <?php if ( ! empty( $data['about_spotlight']['text'] ) ) : ?>
+                                        <p class="about-creative-text"><?php echo esc_html( $data['about_spotlight']['text'] ); ?></p>
+                                    <?php endif; ?>
+                                    <?php if ( ! empty( $data['about_spotlight']['quote'] ) ) : ?>
+                                        <blockquote class="about-signature-quote"><?php echo esc_html( $data['about_spotlight']['quote'] ); ?></blockquote>
+                                    <?php endif; ?>
+                                    <?php if ( ! empty( $data['about_spotlight']['pills'] ) ) : ?>
+                                        <div class="about-pill-row">
+                                            <?php foreach ( $data['about_spotlight']['pills'] as $pill ) : ?>
+                                                <?php if ( '' !== trim( $pill ) ) : ?>
+                                                    <span><?php echo esc_html( $pill ); ?></span>
+                                                <?php endif; ?>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
@@ -127,8 +141,12 @@ while ( have_posts() ) :
                                             <?php echo prashant_bootstrap_get_social_icon_svg( $stat['label'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                                         </div>
                                     <?php endif; ?>
-                                    <div class="profile-stat-number"><?php echo esc_html( $stat['number'] ); ?></div>
-                                    <p class="mb-0"><?php echo esc_html( $stat['label'] ); ?></p>
+                                    <?php if ( ! empty( $stat['number'] ) ) : ?>
+                                        <div class="profile-stat-number"><?php echo esc_html( $stat['number'] ); ?></div>
+                                    <?php endif; ?>
+                                    <?php if ( ! empty( $stat['label'] ) ) : ?>
+                                        <p class="mb-0"><?php echo esc_html( $stat['label'] ); ?></p>
+                                    <?php endif; ?>
                                 </article>
                             </div>
                         <?php endforeach; ?>
@@ -149,8 +167,12 @@ while ( have_posts() ) :
                                 <div class="profile-stack">
                                     <?php foreach ( $data['sections'] as $section ) : ?>
                                         <article class="profile-content-panel" data-reveal="up">
-                                            <h2 class="profile-card-title"><?php echo esc_html( $section['heading'] ); ?></h2>
-                                            <p class="mb-0 text-secondary"><?php echo esc_html( $section['text'] ); ?></p>
+                                            <?php if ( ! empty( $section['heading'] ) ) : ?>
+                                                <h2 class="profile-card-title"><?php echo esc_html( $section['heading'] ); ?></h2>
+                                            <?php endif; ?>
+                                            <?php if ( ! empty( $section['text'] ) ) : ?>
+                                                <p class="mb-0 text-secondary"><?php echo esc_html( $section['text'] ); ?></p>
+                                            <?php endif; ?>
                                         </article>
                                     <?php endforeach; ?>
                                 </div>
@@ -179,10 +201,16 @@ while ( have_posts() ) :
                         <?php foreach ( $data['timeline'] as $index => $item ) : ?>
                             <article class="profile-timeline-item" data-reveal="up">
                                 <span class="profile-timeline-dot"><?php echo esc_html( str_pad( (string) ( $index + 1 ), 2, '0', STR_PAD_LEFT ) ); ?></span>
-                                <div class="profile-timeline-year"><?php echo esc_html( $item['year'] ); ?></div>
+                                <?php if ( ! empty( $item['year'] ) ) : ?>
+                                    <div class="profile-timeline-year"><?php echo esc_html( $item['year'] ); ?></div>
+                                <?php endif; ?>
                                 <div>
-                                    <h2 class="profile-card-title mb-2"><?php echo esc_html( $item['title'] ); ?></h2>
-                                    <p class="mb-0 text-secondary"><?php echo esc_html( $item['text'] ); ?></p>
+                                    <?php if ( ! empty( $item['title'] ) ) : ?>
+                                        <h2 class="profile-card-title mb-2"><?php echo esc_html( $item['title'] ); ?></h2>
+                                    <?php endif; ?>
+                                    <?php if ( ! empty( $item['text'] ) ) : ?>
+                                        <p class="mb-0 text-secondary"><?php echo esc_html( $item['text'] ); ?></p>
+                                    <?php endif; ?>
                                 </div>
                             </article>
                         <?php endforeach; ?>
@@ -281,11 +309,15 @@ while ( have_posts() ) :
                                         </div>
                                     <?php endif; ?>
                                     <div class="profile-card-body">
-                                        <?php if ( ! in_array( $page_slug, array( 'awards-achievements-felicitations', 'accolades' ), true ) ) : ?>
+                                        <?php if ( ! empty( $data['eyebrow'] ) && ! in_array( $page_slug, array( 'awards-achievements-felicitations', 'accolades' ), true ) ) : ?>
                                             <p class="profile-card-kicker mb-2"><?php echo esc_html( $data['eyebrow'] ); ?></p>
                                         <?php endif; ?>
-                                        <h2 class="profile-card-title"><?php echo esc_html( $card['title'] ); ?></h2>
-                                        <p class="mb-0 text-secondary"><?php echo esc_html( $card['text'] ); ?></p>
+                                        <?php if ( ! empty( $card['title'] ) ) : ?>
+                                            <h2 class="profile-card-title"><?php echo esc_html( $card['title'] ); ?></h2>
+                                        <?php endif; ?>
+                                        <?php if ( ! empty( $card['text'] ) ) : ?>
+                                            <p class="mb-0 text-secondary"><?php echo esc_html( $card['text'] ); ?></p>
+                                        <?php endif; ?>
                                     </div>
                                 </article>
                             </div>
@@ -322,8 +354,12 @@ while ( have_posts() ) :
                                         </div>
                                     <?php endif; ?>
                                     <div class="profile-card-body">
-                                        <h2 class="profile-card-title"><?php echo esc_html( $card['title'] ); ?></h2>
-                                        <p class="mb-0 text-secondary"><?php echo esc_html( $card['text'] ); ?></p>
+                                        <?php if ( ! empty( $card['title'] ) ) : ?>
+                                            <h2 class="profile-card-title"><?php echo esc_html( $card['title'] ); ?></h2>
+                                        <?php endif; ?>
+                                        <?php if ( ! empty( $card['text'] ) ) : ?>
+                                            <p class="mb-0 text-secondary"><?php echo esc_html( $card['text'] ); ?></p>
+                                        <?php endif; ?>
                                     </div>
                                 </article>
                             </div>
@@ -340,12 +376,18 @@ while ( have_posts() ) :
                         <?php foreach ( $data['lists'] as $list ) : ?>
                             <div class="col-md-6 col-xl-4" data-reveal="up">
                                 <article class="profile-content-panel h-100">
-                                    <h2 class="profile-card-title"><?php echo esc_html( $list['heading'] ); ?></h2>
-                                    <ul class="profile-list">
-                                        <?php foreach ( $list['items'] as $item ) : ?>
-                                            <li><?php echo esc_html( $item ); ?></li>
-                                        <?php endforeach; ?>
-                                    </ul>
+                                    <?php if ( ! empty( $list['heading'] ) ) : ?>
+                                        <h2 class="profile-card-title"><?php echo esc_html( $list['heading'] ); ?></h2>
+                                    <?php endif; ?>
+                                    <?php if ( ! empty( $list['items'] ) ) : ?>
+                                        <ul class="profile-list">
+                                            <?php foreach ( $list['items'] as $item ) : ?>
+                                                <?php if ( '' !== trim( $item ) ) : ?>
+                                                    <li><?php echo esc_html( $item ); ?></li>
+                                                <?php endif; ?>
+                                            <?php endforeach; ?>
+                                        </ul>
+                                    <?php endif; ?>
                                 </article>
                             </div>
                         <?php endforeach; ?>
@@ -410,8 +452,12 @@ while ( have_posts() ) :
                             <div class="col-md-6 col-xl-4" data-reveal="up">
                                 <article class="profile-video-card">
                                     <div class="profile-play-mark"><?php esc_html_e( 'Play', 'prashant-bootstrap' ); ?></div>
-                                    <h2 class="profile-card-title"><?php echo esc_html( $card['title'] ); ?></h2>
-                                    <p class="mb-0 text-secondary"><?php echo esc_html( $card['text'] ); ?></p>
+                                    <?php if ( ! empty( $card['title'] ) ) : ?>
+                                        <h2 class="profile-card-title"><?php echo esc_html( $card['title'] ); ?></h2>
+                                    <?php endif; ?>
+                                    <?php if ( ! empty( $card['text'] ) ) : ?>
+                                        <p class="mb-0 text-secondary"><?php echo esc_html( $card['text'] ); ?></p>
+                                    <?php endif; ?>
                                 </article>
                             </div>
                         <?php endforeach; ?>
@@ -431,8 +477,12 @@ while ( have_posts() ) :
                                         <?php echo prashant_bootstrap_get_social_icon_svg( $link['label'], $link['url'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                                     </div>
                                     <div>
-                                        <h2 class="profile-card-title mb-2"><?php echo esc_html( $link['label'] ); ?></h2>
-                                        <p class="text-secondary mb-3"><?php echo esc_html( $link['metric'] ); ?></p>
+                                        <?php if ( ! empty( $link['label'] ) ) : ?>
+                                            <h2 class="profile-card-title mb-2"><?php echo esc_html( $link['label'] ); ?></h2>
+                                        <?php endif; ?>
+                                        <?php if ( ! empty( $link['metric'] ) ) : ?>
+                                            <p class="text-secondary mb-3"><?php echo esc_html( $link['metric'] ); ?></p>
+                                        <?php endif; ?>
                                         <a class="btn btn-primary rounded-pill px-4" href="<?php echo esc_url( $link['url'] ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Open Profile', 'prashant-bootstrap' ); ?></a>
                                     </div>
                                 </article>

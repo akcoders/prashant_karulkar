@@ -786,7 +786,7 @@ function prashant_bootstrap_apply_profile_page_overrides( $slug, $data ) {
     $page_options = $options[ $slug ];
 
     foreach ( array( 'eyebrow', 'title', 'lead' ) as $key ) {
-        if ( isset( $page_options[ $key ] ) && '' !== trim( $page_options[ $key ] ) ) {
+        if ( array_key_exists( $key, $page_options ) ) {
             $data[ $key ] = $page_options[ $key ];
         }
     }
@@ -795,12 +795,12 @@ function prashant_bootstrap_apply_profile_page_overrides( $slug, $data ) {
         $spotlight = isset( $data['about_spotlight'] ) && is_array( $data['about_spotlight'] ) ? $data['about_spotlight'] : array();
 
         foreach ( array( 'title', 'text', 'quote' ) as $key ) {
-            if ( isset( $page_options['about_spotlight'][ $key ] ) && '' !== trim( $page_options['about_spotlight'][ $key ] ) ) {
+            if ( array_key_exists( $key, $page_options['about_spotlight'] ) ) {
                 $spotlight[ $key ] = $page_options['about_spotlight'][ $key ];
             }
         }
 
-        if ( isset( $page_options['about_spotlight']['pills'] ) && '' !== trim( $page_options['about_spotlight']['pills'] ) ) {
+        if ( array_key_exists( 'pills', $page_options['about_spotlight'] ) ) {
             $spotlight['pills'] = prashant_bootstrap_parse_text_list( $page_options['about_spotlight']['pills'] );
         }
 
@@ -818,46 +818,77 @@ function prashant_bootstrap_apply_profile_page_overrides( $slug, $data ) {
     );
 
     foreach ( $structured_fields as $field => $config ) {
-        if ( isset( $page_options[ $field ] ) && '' !== trim( $page_options[ $field ] ) ) {
+        if ( array_key_exists( $field, $page_options ) ) {
+            if ( '' === trim( $page_options[ $field ] ) ) {
+                $data[ $field ] = array();
+                continue;
+            }
+
             $parsed = prashant_bootstrap_profile_multiline_rows( $page_options[ $field ], $config[0], $config[1] );
 
             if ( ! empty( $parsed ) ) {
                 $data[ $field ] = $parsed;
+            } else {
+                $data[ $field ] = array();
             }
         }
     }
 
-    if ( isset( $page_options['lists'] ) && '' !== trim( $page_options['lists'] ) ) {
+    if ( array_key_exists( 'lists', $page_options ) ) {
+        if ( '' === trim( $page_options['lists'] ) ) {
+            $data['lists'] = array();
+        } else {
         $parsed_lists = prashant_bootstrap_profile_multiline_lists( $page_options['lists'] );
 
         if ( ! empty( $parsed_lists ) ) {
             $data['lists'] = $parsed_lists;
+        } else {
+            $data['lists'] = array();
+        }
         }
     }
 
-    if ( isset( $page_options['images'] ) && '' !== trim( $page_options['images'] ) ) {
+    if ( array_key_exists( 'images', $page_options ) ) {
+        if ( '' === trim( $page_options['images'] ) ) {
+            $data['images'] = array();
+        } else {
         $parsed_images = prashant_bootstrap_profile_parse_images_text( $page_options['images'] );
 
         if ( ! empty( $parsed_images ) ) {
             $data['images'] = $parsed_images;
+        } else {
+            $data['images'] = array();
+        }
         }
     }
 
     $parsed_albums = array();
 
-    if ( isset( $page_options['gallery_albums'] ) && '' !== trim( $page_options['gallery_albums'] ) ) {
+    if ( array_key_exists( 'gallery_albums', $page_options ) ) {
+        if ( '' === trim( $page_options['gallery_albums'] ) ) {
+            $data['galleries'] = array();
+        } else {
         $parsed_albums = prashant_bootstrap_profile_parse_albums_json( $page_options['gallery_albums'] );
 
         if ( ! empty( $parsed_albums ) ) {
             $data['galleries'] = $parsed_albums;
+        } else {
+            $data['galleries'] = array();
+        }
         }
     }
 
-    if ( empty( $parsed_albums ) && isset( $page_options['gallery_images'] ) && '' !== trim( $page_options['gallery_images'] ) ) {
+    if ( empty( $parsed_albums ) && array_key_exists( 'gallery_images', $page_options ) ) {
+        if ( '' === trim( $page_options['gallery_images'] ) ) {
+            $data['galleries'] = array();
+        } else {
         $parsed_galleries = prashant_bootstrap_profile_parse_gallery_images_text( $page_options['gallery_images'] );
 
         if ( ! empty( $parsed_galleries ) ) {
             $data['galleries'] = $parsed_galleries;
+        } else {
+            $data['galleries'] = array();
+        }
         }
     }
 
@@ -923,7 +954,7 @@ function prashant_bootstrap_profile_pages_admin_assets( $hook_suffix ) {
 add_action( 'admin_enqueue_scripts', 'prashant_bootstrap_profile_pages_admin_assets' );
 
 function prashant_bootstrap_profile_option_value( $options, $slug, $key, $default = '' ) {
-    return isset( $options[ $slug ][ $key ] ) && '' !== $options[ $slug ][ $key ] ? $options[ $slug ][ $key ] : $default;
+    return array_key_exists( $slug, $options ) && is_array( $options[ $slug ] ) && array_key_exists( $key, $options[ $slug ] ) ? $options[ $slug ][ $key ] : $default;
 }
 
 function prashant_bootstrap_render_profile_pages_settings_page() {
@@ -975,20 +1006,20 @@ function prashant_bootstrap_render_profile_pages_settings_page() {
                                 <tr><th colspan="2"><h2><?php esc_html_e( 'About Spotlight', 'prashant-bootstrap' ); ?></h2></th></tr>
                                 <tr>
                                     <th scope="row"><?php esc_html_e( 'Spotlight title', 'prashant-bootstrap' ); ?></th>
-                                    <td><input class="large-text" name="prashant_bootstrap_profile_pages_options[<?php echo esc_attr( $slug ); ?>][about_spotlight][title]" value="<?php echo esc_attr( isset( $options[ $slug ]['about_spotlight']['title'] ) ? $options[ $slug ]['about_spotlight']['title'] : $page['about_spotlight']['title'] ); ?>"></td>
+                                    <td><input class="large-text" name="prashant_bootstrap_profile_pages_options[<?php echo esc_attr( $slug ); ?>][about_spotlight][title]" value="<?php echo esc_attr( isset( $options[ $slug ]['about_spotlight'] ) && array_key_exists( 'title', $options[ $slug ]['about_spotlight'] ) ? $options[ $slug ]['about_spotlight']['title'] : $page['about_spotlight']['title'] ); ?>"></td>
                                 </tr>
                                 <tr>
                                     <th scope="row"><?php esc_html_e( 'Spotlight text', 'prashant-bootstrap' ); ?></th>
-                                    <td><textarea class="large-text" rows="4" name="prashant_bootstrap_profile_pages_options[<?php echo esc_attr( $slug ); ?>][about_spotlight][text]"><?php echo esc_textarea( isset( $options[ $slug ]['about_spotlight']['text'] ) ? $options[ $slug ]['about_spotlight']['text'] : $page['about_spotlight']['text'] ); ?></textarea></td>
+                                    <td><textarea class="large-text" rows="4" name="prashant_bootstrap_profile_pages_options[<?php echo esc_attr( $slug ); ?>][about_spotlight][text]"><?php echo esc_textarea( isset( $options[ $slug ]['about_spotlight'] ) && array_key_exists( 'text', $options[ $slug ]['about_spotlight'] ) ? $options[ $slug ]['about_spotlight']['text'] : $page['about_spotlight']['text'] ); ?></textarea></td>
                                 </tr>
                                 <tr>
                                     <th scope="row"><?php esc_html_e( 'Quote', 'prashant-bootstrap' ); ?></th>
-                                    <td><input class="large-text" name="prashant_bootstrap_profile_pages_options[<?php echo esc_attr( $slug ); ?>][about_spotlight][quote]" value="<?php echo esc_attr( isset( $options[ $slug ]['about_spotlight']['quote'] ) ? $options[ $slug ]['about_spotlight']['quote'] : $page['about_spotlight']['quote'] ); ?>"></td>
+                                    <td><input class="large-text" name="prashant_bootstrap_profile_pages_options[<?php echo esc_attr( $slug ); ?>][about_spotlight][quote]" value="<?php echo esc_attr( isset( $options[ $slug ]['about_spotlight'] ) && array_key_exists( 'quote', $options[ $slug ]['about_spotlight'] ) ? $options[ $slug ]['about_spotlight']['quote'] : $page['about_spotlight']['quote'] ); ?>"></td>
                                 </tr>
                                 <tr>
                                     <th scope="row"><?php esc_html_e( 'Role pills', 'prashant-bootstrap' ); ?></th>
                                     <td>
-                                        <textarea class="large-text" rows="5" name="prashant_bootstrap_profile_pages_options[<?php echo esc_attr( $slug ); ?>][about_spotlight][pills]"><?php echo esc_textarea( isset( $options[ $slug ]['about_spotlight']['pills'] ) ? $options[ $slug ]['about_spotlight']['pills'] : implode( "\n", $page['about_spotlight']['pills'] ) ); ?></textarea>
+                                        <textarea class="large-text" rows="5" name="prashant_bootstrap_profile_pages_options[<?php echo esc_attr( $slug ); ?>][about_spotlight][pills]"><?php echo esc_textarea( isset( $options[ $slug ]['about_spotlight'] ) && array_key_exists( 'pills', $options[ $slug ]['about_spotlight'] ) ? $options[ $slug ]['about_spotlight']['pills'] : implode( "\n", $page['about_spotlight']['pills'] ) ); ?></textarea>
                                         <p class="description"><?php esc_html_e( 'One pill per line.', 'prashant-bootstrap' ); ?></p>
                                     </td>
                                 </tr>

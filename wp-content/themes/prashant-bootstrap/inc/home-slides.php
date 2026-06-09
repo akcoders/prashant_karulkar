@@ -57,7 +57,14 @@ function prashant_bootstrap_add_home_slide_meta_boxes() {
 add_action( 'add_meta_boxes_home_slide', 'prashant_bootstrap_add_home_slide_meta_boxes' );
 
 function prashant_bootstrap_render_home_slide_meta_box( $post ) {
-    $eyebrow = get_post_meta( $post->ID, '_prashant_slide_eyebrow', true );
+    $eyebrow          = get_post_meta( $post->ID, '_prashant_slide_eyebrow', true );
+    $media_type       = get_post_meta( $post->ID, '_prashant_slide_media_type', true );
+    $youtube_url      = get_post_meta( $post->ID, '_prashant_slide_youtube_url', true );
+    $custom_video_url = get_post_meta( $post->ID, '_prashant_slide_custom_video_url', true );
+
+    if ( ! in_array( $media_type, array( 'image', 'youtube', 'video' ), true ) ) {
+        $media_type = 'image';
+    }
 
     wp_nonce_field( 'prashant_bootstrap_save_home_slide', 'prashant_home_slide_nonce' );
     ?>
@@ -67,7 +74,22 @@ function prashant_bootstrap_render_home_slide_meta_box( $post ) {
     <p>
         <input type="text" class="widefat" id="prashant-slide-eyebrow" name="prashant_slide_eyebrow" value="<?php echo esc_attr( $eyebrow ); ?>" placeholder="<?php esc_attr_e( 'Example: Leadership', 'prashant-bootstrap' ); ?>">
     </p>
-    <p class="description"><?php esc_html_e( 'Use the title for the main heading, the editor for supporting content, the slide image panel for the image, and Order to control slide position.', 'prashant-bootstrap' ); ?></p>
+    <hr>
+    <p><strong><?php esc_html_e( 'Slide Media', 'prashant-bootstrap' ); ?></strong></p>
+    <p>
+        <label><input type="radio" name="prashant_slide_media_type" value="image" <?php checked( $media_type, 'image' ); ?>> <?php esc_html_e( 'Image', 'prashant-bootstrap' ); ?></label><br>
+        <label><input type="radio" name="prashant_slide_media_type" value="youtube" <?php checked( $media_type, 'youtube' ); ?>> <?php esc_html_e( 'YouTube Video', 'prashant-bootstrap' ); ?></label><br>
+        <label><input type="radio" name="prashant_slide_media_type" value="video" <?php checked( $media_type, 'video' ); ?>> <?php esc_html_e( 'Custom Video URL', 'prashant-bootstrap' ); ?></label>
+    </p>
+    <p>
+        <label for="prashant-slide-youtube-url"><strong><?php esc_html_e( 'YouTube URL', 'prashant-bootstrap' ); ?></strong></label>
+        <input type="url" class="widefat" id="prashant-slide-youtube-url" name="prashant_slide_youtube_url" value="<?php echo esc_attr( $youtube_url ); ?>" placeholder="https://www.youtube.com/watch?v=...">
+    </p>
+    <p>
+        <label for="prashant-slide-custom-video-url"><strong><?php esc_html_e( 'Custom Video URL', 'prashant-bootstrap' ); ?></strong></label>
+        <input type="url" class="widefat" id="prashant-slide-custom-video-url" name="prashant_slide_custom_video_url" value="<?php echo esc_attr( $custom_video_url ); ?>" placeholder="https://example.com/video.mp4">
+    </p>
+    <p class="description"><?php esc_html_e( 'Image slides use the featured image. Video slides autoplay muted when their slide becomes active. Order controls slide position.', 'prashant-bootstrap' ); ?></p>
     <?php
 }
 
@@ -87,16 +109,78 @@ function prashant_bootstrap_save_home_slide( $post_id ) {
         return;
     }
 
-    $eyebrow = isset( $_POST['prashant_slide_eyebrow'] ) ? sanitize_text_field( wp_unslash( $_POST['prashant_slide_eyebrow'] ) ) : '';
+    $eyebrow          = isset( $_POST['prashant_slide_eyebrow'] ) ? sanitize_text_field( wp_unslash( $_POST['prashant_slide_eyebrow'] ) ) : '';
+    $media_type       = isset( $_POST['prashant_slide_media_type'] ) ? sanitize_key( wp_unslash( $_POST['prashant_slide_media_type'] ) ) : 'image';
+    $youtube_url      = isset( $_POST['prashant_slide_youtube_url'] ) ? esc_url_raw( wp_unslash( $_POST['prashant_slide_youtube_url'] ) ) : '';
+    $custom_video_url = isset( $_POST['prashant_slide_custom_video_url'] ) ? esc_url_raw( wp_unslash( $_POST['prashant_slide_custom_video_url'] ) ) : '';
+
+    if ( ! in_array( $media_type, array( 'image', 'youtube', 'video' ), true ) ) {
+        $media_type = 'image';
+    }
 
     if ( '' === $eyebrow ) {
         delete_post_meta( $post_id, '_prashant_slide_eyebrow' );
-        return;
+    } else {
+        update_post_meta( $post_id, '_prashant_slide_eyebrow', $eyebrow );
     }
 
-    update_post_meta( $post_id, '_prashant_slide_eyebrow', $eyebrow );
+    update_post_meta( $post_id, '_prashant_slide_media_type', $media_type );
+
+    if ( $youtube_url ) {
+        update_post_meta( $post_id, '_prashant_slide_youtube_url', $youtube_url );
+    } else {
+        delete_post_meta( $post_id, '_prashant_slide_youtube_url' );
+    }
+
+    if ( $custom_video_url ) {
+        update_post_meta( $post_id, '_prashant_slide_custom_video_url', $custom_video_url );
+    } else {
+        delete_post_meta( $post_id, '_prashant_slide_custom_video_url' );
+    }
 }
 add_action( 'save_post_home_slide', 'prashant_bootstrap_save_home_slide' );
+
+function prashant_bootstrap_youtube_embed_url( $url ) {
+    $parts = wp_parse_url( $url );
+
+    if ( empty( $parts['host'] ) ) {
+        return '';
+    }
+
+    $host     = strtolower( $parts['host'] );
+    $video_id = '';
+
+    if ( false !== strpos( $host, 'youtu.be' ) && ! empty( $parts['path'] ) ) {
+        $video_id = trim( $parts['path'], '/' );
+    } elseif ( false !== strpos( $host, 'youtube.com' ) ) {
+        if ( ! empty( $parts['query'] ) ) {
+            parse_str( $parts['query'], $query );
+            $video_id = ! empty( $query['v'] ) ? $query['v'] : '';
+        }
+
+        if ( ! $video_id && ! empty( $parts['path'] ) && preg_match( '#/(embed|shorts)/([^/?]+)#', $parts['path'], $matches ) ) {
+            $video_id = $matches[2];
+        }
+    }
+
+    $video_id = preg_replace( '/[^A-Za-z0-9_-]/', '', $video_id );
+
+    if ( ! $video_id ) {
+        return '';
+    }
+
+    return add_query_arg(
+        array(
+            'autoplay'    => 1,
+            'mute'        => 1,
+            'controls'    => 0,
+            'playsinline' => 1,
+            'rel'         => 0,
+            'enablejsapi' => 1,
+        ),
+        'https://www.youtube.com/embed/' . $video_id
+    );
+}
 
 function prashant_bootstrap_get_home_slides() {
     $posts  = get_posts(
@@ -113,13 +197,29 @@ function prashant_bootstrap_get_home_slides() {
     $slides = array();
 
     foreach ( $posts as $slide_post ) {
-        $image = get_the_post_thumbnail_url( $slide_post, 'full' );
+        $image            = get_the_post_thumbnail_url( $slide_post, 'full' );
+        $media_type       = get_post_meta( $slide_post->ID, '_prashant_slide_media_type', true );
+        $youtube_url      = get_post_meta( $slide_post->ID, '_prashant_slide_youtube_url', true );
+        $custom_video_url = get_post_meta( $slide_post->ID, '_prashant_slide_custom_video_url', true );
+        $youtube_embed    = $youtube_url ? prashant_bootstrap_youtube_embed_url( $youtube_url ) : '';
 
-        if ( ! $image ) {
+        if ( ! in_array( $media_type, array( 'image', 'youtube', 'video' ), true ) ) {
+            $media_type = 'image';
+        }
+
+        if ( 'youtube' === $media_type && ! $youtube_embed ) {
             continue;
         }
 
-        $image_path = wp_parse_url( $image, PHP_URL_PATH );
+        if ( 'video' === $media_type && ! $custom_video_url ) {
+            continue;
+        }
+
+        if ( 'image' === $media_type && ! $image ) {
+            continue;
+        }
+
+        $image_path = $image ? wp_parse_url( $image, PHP_URL_PATH ) : '';
 
         if ( $image_path ) {
             $uploads = wp_get_upload_dir();
@@ -140,6 +240,8 @@ function prashant_bootstrap_get_home_slides() {
             'title'   => get_the_title( $slide_post ),
             'content' => apply_filters( 'the_content', $slide_post->post_content ),
             'image'   => $image,
+            'type'    => $media_type,
+            'video'   => 'youtube' === $media_type ? $youtube_embed : $custom_video_url,
         );
     }
 
@@ -151,6 +253,7 @@ function prashant_bootstrap_home_slide_columns( $columns ) {
         'cb'         => $columns['cb'],
         'thumbnail'  => __( 'Image', 'prashant-bootstrap' ),
         'title'      => __( 'Title', 'prashant-bootstrap' ),
+        'media_type' => __( 'Media', 'prashant-bootstrap' ),
         'eyebrow'    => __( 'Eyebrow', 'prashant-bootstrap' ),
         'menu_order' => __( 'Order', 'prashant-bootstrap' ),
         'date'       => $columns['date'],
@@ -161,6 +264,9 @@ add_filter( 'manage_home_slide_posts_columns', 'prashant_bootstrap_home_slide_co
 function prashant_bootstrap_home_slide_column_content( $column, $post_id ) {
     if ( 'thumbnail' === $column ) {
         echo get_the_post_thumbnail( $post_id, array( 80, 56 ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+    } elseif ( 'media_type' === $column ) {
+        $media_type = get_post_meta( $post_id, '_prashant_slide_media_type', true );
+        echo esc_html( $media_type ? ucfirst( $media_type ) : __( 'Image', 'prashant-bootstrap' ) );
     } elseif ( 'eyebrow' === $column ) {
         echo esc_html( get_post_meta( $post_id, '_prashant_slide_eyebrow', true ) );
     } elseif ( 'menu_order' === $column ) {

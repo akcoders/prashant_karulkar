@@ -302,8 +302,12 @@ function prashant_bootstrap_render_homepage_settings_page() {
                                 <p>
                                     <button type="button" class="button button-secondary pb-quote-images-add"><?php esc_html_e( 'Add / Upload Images', 'prashant-bootstrap' ); ?></button>
                                 </p>
+                                <p>
+                                    <label><strong><?php esc_html_e( 'Import CSV', 'prashant-bootstrap' ); ?></strong></label><br>
+                                    <input type="file" class="pb-quote-images-csv" accept=".csv,text/csv">
+                                </p>
                             </div>
-                            <p class="description"><?php esc_html_e( 'Bulk select or upload quote images. One image is shown per day in this order, then the list repeats.', 'prashant-bootstrap' ); ?></p>
+                            <p class="description"><?php esc_html_e( 'Bulk select or upload quote images. CSV format: date,image_url,alt_text. Date rows show on that exact date; undated rows rotate daily.', 'prashant-bootstrap' ); ?></p>
                         </td>
                     </tr>
                 </tbody>
@@ -315,7 +319,7 @@ function prashant_bootstrap_render_homepage_settings_page() {
     <style>
         .pb-quote-images-textarea { display: none; }
         .pb-quote-image-list { display: grid; gap: 10px; margin: 12px 0; max-width: 760px; }
-        .pb-quote-image-row { align-items: center; background: #fff; border: 1px solid #dcdcde; display: grid; gap: 10px; grid-template-columns: 72px 1fr auto auto; padding: 10px; }
+        .pb-quote-image-row { align-items: center; background: #fff; border: 1px solid #dcdcde; display: grid; gap: 10px; grid-template-columns: 72px 140px 1fr auto auto; padding: 10px; }
         .pb-quote-image-row img { background: #f0f0f1; height: 54px; object-fit: contain; width: 72px; }
         .pb-quote-image-row input { width: 100%; }
         .pb-quote-image-actions { display: flex; gap: 6px; }
@@ -325,8 +329,57 @@ function prashant_bootstrap_render_homepage_settings_page() {
             function parseRows(value) {
                 return (value || "").split(/\r?\n/).map(function (line) {
                     var parts = line.split("|").map(function (part) { return part.trim(); });
-                    return { url: parts[0] || "", alt: parts.slice(1).join(" | ") || "" };
+                    var first = parts[0] || "";
+                    var second = parts[1] || "";
+                    var isImage = /\.(png|jpe?g|gif|webp|avif|svg)(\?.*)?$/i.test(first);
+
+                    if (!isImage && second) {
+                        return { date: first, url: second, alt: parts.slice(2).join(" | ") || "" };
+                    }
+
+                    return { date: "", url: first, alt: parts.slice(1).join(" | ") || "" };
                 }).filter(function (row) { return row.url; });
+            }
+
+            function parseCsv(text) {
+                var rows = [];
+                var current = [];
+                var field = "";
+                var quoted = false;
+
+                for (var i = 0; i < text.length; i++) {
+                    var char = text[i];
+                    var next = text[i + 1];
+
+                    if (char === '"' && quoted && next === '"') {
+                        field += '"';
+                        i++;
+                    } else if (char === '"') {
+                        quoted = !quoted;
+                    } else if (char === "," && !quoted) {
+                        current.push(field.trim());
+                        field = "";
+                    } else if ((char === "\n" || char === "\r") && !quoted) {
+                        if (char === "\r" && next === "\n") {
+                            i++;
+                        }
+                        current.push(field.trim());
+                        if (current.some(function (value) { return value; })) {
+                            rows.push(current);
+                        }
+                        current = [];
+                        field = "";
+                    } else {
+                        field += char;
+                    }
+                }
+
+                current.push(field.trim());
+                if (current.some(function (value) { return value; })) {
+                    rows.push(current);
+                }
+
+                return rows;
             }
 
             function serialize(manager) {
@@ -334,6 +387,7 @@ function prashant_bootstrap_render_homepage_settings_page() {
 
                 manager.find(".pb-quote-image-row").each(function () {
                     var row = $(this);
+                    var date = row.find(".pb-quote-image-date").val().trim();
                     var url = row.find(".pb-quote-image-url").val().trim();
                     var alt = row.find(".pb-quote-image-alt").val().trim();
 
@@ -341,7 +395,7 @@ function prashant_bootstrap_render_homepage_settings_page() {
                         return;
                     }
 
-                    lines.push(url + (alt ? " | " + alt : ""));
+                    lines.push((date ? date + " | " : "") + url + (alt ? " | " + alt : ""));
                 });
 
                 $($(manager).data("target")).val(lines.join("\n"));
@@ -350,6 +404,7 @@ function prashant_bootstrap_render_homepage_settings_page() {
             function addRow(manager, data) {
                 var row = $('<div class="pb-quote-image-row"></div>');
                 var preview = $('<img alt="">').attr("src", data.url || "");
+                var date = $('<input type="date" class="regular-text pb-quote-image-date">').val(data.date || "");
                 var fields = $('<div></div>');
                 var url = $('<input type="url" class="regular-text pb-quote-image-url" placeholder="Image URL">').val(data.url || "");
                 var alt = $('<input type="text" class="regular-text pb-quote-image-alt" placeholder="Alt text">').val(data.alt || "");
@@ -360,7 +415,7 @@ function prashant_bootstrap_render_homepage_settings_page() {
 
                 fields.append(url, alt);
                 actions.append(up, down);
-                row.append(preview, fields, actions, remove);
+                row.append(preview, date, fields, actions, remove);
                 manager.find(".pb-quote-image-list").append(row);
                 serialize(manager);
             }
@@ -397,6 +452,40 @@ function prashant_bootstrap_render_homepage_settings_page() {
                 var manager = row.closest(".pb-quote-image-manager");
                 row.find("img").attr("src", row.find(".pb-quote-image-url").val());
                 serialize(manager);
+            });
+
+            $(document).on("change", ".pb-quote-images-csv", function () {
+                var input = this;
+                var manager = $(input).closest(".pb-quote-image-manager");
+                var file = input.files && input.files[0];
+
+                if (!file) {
+                    return;
+                }
+
+                var reader = new FileReader();
+                reader.onload = function (event) {
+                    parseCsv(event.target.result || "").forEach(function (row, index) {
+                        var date = row[0] || "";
+                        var url = row[1] || "";
+                        var alt = row.slice(2).join(", ") || "";
+
+                        if (index === 0 && /date/i.test(date) && /url/i.test(url)) {
+                            return;
+                        }
+
+                        if (!url && date) {
+                            url = date;
+                            date = "";
+                        }
+
+                        if (url) {
+                            addRow(manager, { date: date, url: url, alt: alt });
+                        }
+                    });
+                    input.value = "";
+                };
+                reader.readAsText(file);
             });
 
             $(document).on("click", ".pb-quote-image-remove", function () {
@@ -460,14 +549,27 @@ function prashant_bootstrap_sanitize_quote_images_text( $raw_text ) {
 
     foreach ( $rows as $row ) {
         $parts = array_map( 'trim', explode( '|', $row ) );
-        $url   = ! empty( $parts[0] ) ? esc_url_raw( $parts[0] ) : '';
+        $date  = '';
+        $url   = '';
+
+        if ( ! empty( $parts[0] ) && prashant_bootstrap_is_image_url( $parts[0] ) ) {
+            $url = esc_url_raw( $parts[0] );
+        } elseif ( ! empty( $parts[0] ) && ! empty( $parts[1] ) ) {
+            $timestamp = strtotime( $parts[0] );
+
+            if ( $timestamp ) {
+                $date = gmdate( 'Y-m-d', $timestamp );
+                $url  = esc_url_raw( $parts[1] );
+            }
+        }
 
         if ( ! $url || ! prashant_bootstrap_is_image_url( $url ) ) {
             continue;
         }
 
-        $alt = ! empty( $parts[1] ) ? sanitize_text_field( implode( ' | ', array_slice( $parts, 1 ) ) ) : '';
-        $clean[] = $url . ( $alt ? ' | ' . $alt : '' );
+        $alt_parts = $date ? array_slice( $parts, 2 ) : array_slice( $parts, 1 );
+        $alt       = ! empty( $alt_parts ) ? sanitize_text_field( implode( ' | ', $alt_parts ) ) : '';
+        $clean[]   = ( $date ? $date . ' | ' : '' ) . $url . ( $alt ? ' | ' . $alt : '' );
     }
 
     return implode( "\n", $clean );
@@ -480,19 +582,58 @@ function prashant_bootstrap_get_daily_quote_images() {
 
     foreach ( $rows as $row ) {
         $parts = array_map( 'trim', explode( '|', $row ) );
-        $url   = ! empty( $parts[0] ) ? $parts[0] : '';
+        $date  = '';
+        $url   = '';
+
+        if ( ! empty( $parts[0] ) && prashant_bootstrap_is_image_url( $parts[0] ) ) {
+            $url = $parts[0];
+        } elseif ( ! empty( $parts[0] ) && ! empty( $parts[1] ) ) {
+            $timestamp = strtotime( $parts[0] );
+
+            if ( $timestamp ) {
+                $date = gmdate( 'Y-m-d', $timestamp );
+                $url  = $parts[1];
+            }
+        }
 
         if ( ! $url || ! prashant_bootstrap_is_image_url( $url ) ) {
             continue;
         }
 
+        $alt_parts = $date ? array_slice( $parts, 2 ) : array_slice( $parts, 1 );
         $images[] = array(
-            'url' => $url,
-            'alt' => ! empty( $parts[1] ) ? implode( ' | ', array_slice( $parts, 1 ) ) : __( "Today's Quote", 'prashant-bootstrap' ),
+            'date' => $date,
+            'url'  => $url,
+            'alt'  => ! empty( $alt_parts ) ? implode( ' | ', $alt_parts ) : __( "Today's Quote", 'prashant-bootstrap' ),
         );
     }
 
     return $images;
+}
+
+function prashant_bootstrap_get_today_quote_image( $images ) {
+    if ( empty( $images ) || ! is_array( $images ) ) {
+        return array();
+    }
+
+    $today    = current_time( 'Y-m-d' );
+    $undated  = array();
+
+    foreach ( $images as $image ) {
+        if ( ! empty( $image['date'] ) && $today === $image['date'] ) {
+            return $image;
+        }
+
+        if ( empty( $image['date'] ) ) {
+            $undated[] = $image;
+        }
+    }
+
+    if ( ! empty( $undated ) ) {
+        return $undated[ (int) current_time( 'z' ) % count( $undated ) ];
+    }
+
+    return $images[ (int) current_time( 'z' ) % count( $images ) ];
 }
 
 function prashant_bootstrap_get_home_profile_images() {

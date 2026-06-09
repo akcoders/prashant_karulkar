@@ -20,9 +20,8 @@ $hero_quote       = $homepage_options['hero_quote'];
 $daily_quotes     = prashant_bootstrap_get_daily_quotes();
 $daily_quote      = ! empty( $daily_quotes ) ? $daily_quotes[ (int) current_time( 'z' ) % count( $daily_quotes ) ] : 'Purpose-led thinking builds enduring legacy.';
 $daily_quote_images = function_exists( 'prashant_bootstrap_get_daily_quote_images' ) ? prashant_bootstrap_get_daily_quote_images() : array();
-$daily_quote_image  = ! empty( $daily_quote_images ) ? $daily_quote_images[ (int) current_time( 'z' ) % count( $daily_quote_images ) ] : array();
+$daily_quote_image  = function_exists( 'prashant_bootstrap_get_today_quote_image' ) ? prashant_bootstrap_get_today_quote_image( $daily_quote_images ) : ( ! empty( $daily_quote_images ) ? $daily_quote_images[ (int) current_time( 'z' ) % count( $daily_quote_images ) ] : array() );
 $daily_quote_is_image = ! empty( $daily_quote_image['url'] ) || ( function_exists( 'prashant_bootstrap_is_image_url' ) && prashant_bootstrap_is_image_url( $daily_quote ) );
-$today_quote_date = wp_date( 'F j, Y' );
 $default_slides   = array(
     array(
         'eyebrow' => 'Recognition',
@@ -111,7 +110,15 @@ $recent_posts = new WP_Query(
                                 <div class="carousel-item <?php echo 0 === $index ? 'active' : ''; ?>">
                                     <div class="hero-slide">
                                         <div class="hero-visual-shell">
-                                            <img class="hero-slide-image" src="<?php echo esc_url( $slide['image'] ); ?>" alt="<?php echo esc_attr( $slide['title'] ); ?>">
+                                            <?php if ( ! empty( $slide['type'] ) && 'youtube' === $slide['type'] && ! empty( $slide['video'] ) ) : ?>
+                                                <iframe class="hero-slide-video hero-slide-youtube" <?php echo 0 === $index ? 'src="' . esc_url( $slide['video'] ) . '"' : ''; ?> data-src="<?php echo esc_url( $slide['video'] ); ?>" title="<?php echo esc_attr( $slide['title'] ); ?>" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen loading="<?php echo 0 === $index ? 'eager' : 'lazy'; ?>"></iframe>
+                                            <?php elseif ( ! empty( $slide['type'] ) && 'video' === $slide['type'] && ! empty( $slide['video'] ) ) : ?>
+                                                <video class="hero-slide-video" <?php echo 0 === $index ? 'autoplay' : ''; ?> muted loop playsinline preload="metadata" <?php echo ! empty( $slide['image'] ) ? 'poster="' . esc_url( $slide['image'] ) . '"' : ''; ?>>
+                                                    <source src="<?php echo esc_url( $slide['video'] ); ?>">
+                                                </video>
+                                            <?php else : ?>
+                                                <img class="hero-slide-image" src="<?php echo esc_url( $slide['image'] ); ?>" alt="<?php echo esc_attr( $slide['title'] ); ?>">
+                                            <?php endif; ?>
                                         </div>
                                     </div>
                                 </div>
@@ -308,7 +315,6 @@ $recent_posts = new WP_Query(
                             <div class="quote-panel-inner">
                                 <div class="quote-panel-top">
                                     <p class="section-eyebrow mb-0"><?php echo esc_html( $homepage_options['quote_eyebrow'] ); ?></p>
-                                    <time class="quote-date" datetime="<?php echo esc_attr( wp_date( 'Y-m-d' ) ); ?>"><?php echo esc_html( $today_quote_date ); ?></time>
                                 </div>
                                 <?php if ( $daily_quote_is_image ) : ?>
                                     <img class="daily-quote-image" src="<?php echo esc_url( ! empty( $daily_quote_image['url'] ) ? $daily_quote_image['url'] : $daily_quote ); ?>" alt="<?php echo esc_attr( ! empty( $daily_quote_image['alt'] ) ? $daily_quote_image['alt'] : __( "Today's Quote", 'prashant-bootstrap' ) ); ?>">
@@ -323,6 +329,42 @@ $recent_posts = new WP_Query(
         </div>
     </section>
 </main>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var carousel = document.getElementById('authorCarousel');
+
+        if (!carousel) {
+            return;
+        }
+
+        function syncSlideVideos() {
+            carousel.querySelectorAll('.carousel-item').forEach(function (item) {
+                item.querySelectorAll('iframe.hero-slide-youtube').forEach(function (iframe) {
+                    if (item.classList.contains('active')) {
+                        if (!iframe.getAttribute('src')) {
+                            iframe.setAttribute('src', iframe.dataset.src || '');
+                        }
+                    } else {
+                        iframe.removeAttribute('src');
+                    }
+                });
+
+                item.querySelectorAll('video.hero-slide-video').forEach(function (video) {
+                    if (item.classList.contains('active')) {
+                        video.play().catch(function () {});
+                    } else {
+                        video.pause();
+                        video.currentTime = 0;
+                    }
+                });
+            });
+        }
+
+        carousel.addEventListener('slid.bs.carousel', syncSlideVideos);
+        syncSlideVideos();
+    });
+</script>
 
 <?php
 get_footer();

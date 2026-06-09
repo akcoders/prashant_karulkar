@@ -877,6 +877,14 @@ img {
     width: 100%;
 }
 
+.hero-slide-video {
+    border: 0;
+    display: block;
+    height: 100%;
+    object-fit: cover;
+    width: 100%;
+}
+
 .carousel-indicators {
     bottom: 0;
     margin-bottom: 0.5rem;
@@ -2279,6 +2287,32 @@ img {
     aspect-ratio: 4 / 3;
 }
 
+.page-karulkar-pratishthan .profile-image-mosaic {
+    column-count: 3;
+    column-gap: 1rem;
+    display: block;
+}
+
+.page-karulkar-pratishthan .profile-image-mosaic figure,
+.page-karulkar-pratishthan .profile-image-mosaic figure:nth-child(1),
+.page-karulkar-pratishthan .profile-image-mosaic figure:nth-child(2),
+.page-karulkar-pratishthan .profile-image-mosaic figure:nth-child(n+3) {
+    break-inside: avoid;
+    display: block;
+    grid-column: auto;
+    margin: 0 0 1rem;
+    overflow: hidden;
+}
+
+.page-karulkar-pratishthan .profile-image-mosaic img {
+    aspect-ratio: auto;
+    background: transparent;
+    display: block;
+    height: auto;
+    object-fit: contain;
+    width: 100%;
+}
+
 .profile-timeline {
     display: grid;
     gap: 1.35rem;
@@ -3272,8 +3306,51 @@ img {
     width: 100% !important;
 }
 
+.hero-slide-video {
+    height: 100% !important;
+    object-fit: cover !important;
+    width: 100% !important;
+}
+
 .daily-quote-image {
     background: transparent !important;
+}
+
+.page-karulkar-pratishthan .profile-image-mosaic {
+    column-count: 3 !important;
+    column-gap: 1rem !important;
+    display: block !important;
+}
+
+.page-karulkar-pratishthan .profile-image-mosaic figure,
+.page-karulkar-pratishthan .profile-image-mosaic figure:nth-child(1),
+.page-karulkar-pratishthan .profile-image-mosaic figure:nth-child(2),
+.page-karulkar-pratishthan .profile-image-mosaic figure:nth-child(n+3) {
+    break-inside: avoid !important;
+    display: block !important;
+    grid-column: auto !important;
+    margin: 0 0 1rem !important;
+    overflow: hidden !important;
+}
+
+.page-karulkar-pratishthan .profile-image-mosaic img {
+    aspect-ratio: auto !important;
+    background: transparent !important;
+    height: auto !important;
+    object-fit: contain !important;
+    width: 100% !important;
+}
+
+@media (max-width: 991.98px) {
+    .page-karulkar-pratishthan .profile-image-mosaic {
+        column-count: 2 !important;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .page-karulkar-pratishthan .profile-image-mosaic {
+        column-count: 1 !important;
+    }
 }
 
 .home-news-thumb img,
