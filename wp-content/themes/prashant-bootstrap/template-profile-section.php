@@ -299,6 +299,7 @@ while ( have_posts() ) :
                         <?php foreach ( $data['cards'] as $card ) : ?>
                             <?php
                             $card_images = array();
+                            $card_eyebrow = ! empty( $card['eyebrow'] ) ? $card['eyebrow'] : ( ! empty( $data['eyebrow'] ) ? $data['eyebrow'] : '' );
                             if ( ! empty( $card['folder'] ) ) {
                                 if ( prashant_bootstrap_profile_is_image_url( $card['folder'] ) ) {
                                     $card_images[] = array(
@@ -318,8 +319,8 @@ while ( have_posts() ) :
                                         </div>
                                     <?php endif; ?>
                                     <div class="profile-card-body">
-                                        <?php if ( ! empty( $data['eyebrow'] ) && ! in_array( $page_slug, array( 'awards-achievements-felicitations', 'accolades' ), true ) ) : ?>
-                                            <p class="profile-card-kicker mb-2"><?php echo esc_html( $data['eyebrow'] ); ?></p>
+                                        <?php if ( ! empty( $card_eyebrow ) && ! in_array( $page_slug, array( 'awards-achievements-felicitations', 'accolades' ), true ) ) : ?>
+                                            <p class="profile-card-kicker mb-2"><?php echo esc_html( $card_eyebrow ); ?></p>
                                         <?php endif; ?>
                                         <?php if ( ! empty( $card['title'] ) ) : ?>
                                             <h2 class="profile-card-title"><?php echo esc_html( $card['title'] ); ?></h2>
@@ -349,6 +350,7 @@ while ( have_posts() ) :
                         <?php foreach ( $data['cards'] as $card ) : ?>
                             <?php
                             $card_images = array();
+                            $card_eyebrow = ! empty( $card['eyebrow'] ) ? $card['eyebrow'] : '';
                             if ( ! empty( $card['folder'] ) ) {
                                 $card_images = prashant_bootstrap_profile_is_image_url( $card['folder'] )
                                     ? array( array( 'url' => $card['folder'], 'alt' => $card['title'] ) )
@@ -363,6 +365,9 @@ while ( have_posts() ) :
                                         </div>
                                     <?php endif; ?>
                                     <div class="profile-card-body">
+                                        <?php if ( ! empty( $card_eyebrow ) ) : ?>
+                                            <p class="profile-card-kicker mb-2"><?php echo esc_html( $card_eyebrow ); ?></p>
+                                        <?php endif; ?>
                                         <?php if ( ! empty( $card['title'] ) ) : ?>
                                             <h2 class="profile-card-title"><?php echo esc_html( $card['title'] ); ?></h2>
                                         <?php endif; ?>

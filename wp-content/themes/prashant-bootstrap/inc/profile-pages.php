@@ -526,6 +526,7 @@ function prashant_bootstrap_profile_cards_to_text( $cards ) {
                 isset( $card['title'] ) ? $card['title'] : '',
                 isset( $card['text'] ) ? $card['text'] : '',
                 isset( $card['folder'] ) ? prashant_bootstrap_profile_card_image_for_admin( $card['folder'] ) : '',
+                isset( $card['eyebrow'] ) ? $card['eyebrow'] : '',
             )
         );
     }
@@ -534,7 +535,7 @@ function prashant_bootstrap_profile_cards_to_text( $cards ) {
 }
 
 function prashant_bootstrap_profile_cards_text_with_previews( $raw_text ) {
-    $cards = prashant_bootstrap_profile_multiline_rows( $raw_text, array( 'title', 'text', 'folder' ), 2 );
+    $cards = prashant_bootstrap_profile_multiline_rows( $raw_text, array( 'title', 'text', 'folder', 'eyebrow' ), 2 );
 
     return prashant_bootstrap_profile_cards_to_text( $cards );
 }
@@ -811,7 +812,7 @@ function prashant_bootstrap_apply_profile_page_overrides( $slug, $data ) {
         'stats'        => array( array( 'number', 'label' ), 2 ),
         'sections'     => array( array( 'heading', 'text' ), 2 ),
         'timeline'     => array( array( 'year', 'title', 'text' ), 3 ),
-        'cards'        => array( array( 'title', 'text', 'folder' ), 2 ),
+        'cards'        => array( array( 'title', 'text', 'folder', 'eyebrow' ), 2 ),
         'galleries'    => array( array( 'title', 'folder' ), 2 ),
         'video_cards'  => array( array( 'title', 'text' ), 2 ),
         'social_links' => array( array( 'label', 'url', 'metric' ), 3 ),
@@ -1032,8 +1033,8 @@ function prashant_bootstrap_render_profile_pages_settings_page() {
                                 'timeline'     => array( __( 'Timeline', 'prashant-bootstrap' ), 'year | title | text', array( 'year', 'title', 'text' ) ),
                                 'cards'        => array(
                                     'accolades' === $slug ? __( 'Accolade Cards', 'prashant-bootstrap' ) : ( 'media-coverage' === $slug ? __( 'Media Highlight Cards', 'prashant-bootstrap' ) : __( 'Cards', 'prashant-bootstrap' ) ),
-                                    'title | text | optional image',
-                                    array( 'title', 'text', 'folder' ),
+                                    'title | text | optional image | optional card eyebrow',
+                                    array( 'title', 'text', 'folder', 'eyebrow' ),
                                 ),
                                 'video_cards'  => array( __( 'Video Cards', 'prashant-bootstrap' ), 'title | text', array( 'title', 'text' ) ),
                                 'social_links' => array( __( 'Social Links', 'prashant-bootstrap' ), 'label | url | metric/details', array( 'label', 'url', 'metric' ) ),
@@ -1120,7 +1121,14 @@ function prashant_bootstrap_render_profile_pages_settings_page() {
         .pb-media-textarea, .pb-card-textarea, .pb-album-textarea { display:none; }
         .pb-media-manager, .pb-card-manager, .pb-album-manager { background:#fff; border:1px solid #dcdcde; border-radius:8px; margin-top:10px; padding:12px; }
         .pb-media-row { align-items:center; border-bottom:1px solid #f0f0f1; display:grid; gap:10px; grid-template-columns:72px 1fr 1fr auto; padding:10px 0; }
-        .pb-card-row { align-items:start; border-bottom:1px solid #f0f0f1; display:grid; gap:10px; grid-template-columns:96px 1fr 1.4fr 1fr auto; padding:12px 0; }
+        .pb-card-row { background:#f6f7f7; border:1px solid #dcdcde; border-radius:10px; display:grid; gap:14px; grid-template-columns:130px minmax(0, 1fr) 150px; margin:0 0 14px; padding:14px; }
+        .pb-card-fields { display:grid; gap:10px; grid-template-columns:repeat(2, minmax(0, 1fr)); }
+        .pb-card-field { display:flex; flex-direction:column; gap:5px; }
+        .pb-card-field label { color:#1d2327; font-weight:600; }
+        .pb-card-field-full { grid-column:1 / -1; }
+        .pb-card-field input,
+        .pb-card-field textarea { width:100%; }
+        .pb-card-field textarea { min-height:96px; resize:vertical; }
         .pb-album-card { background:#f6f7f7; border:1px solid #dcdcde; border-radius:10px; margin-bottom:14px; padding:14px; }
         .pb-album-head { align-items:start; display:grid; gap:12px; grid-template-columns:130px 1fr auto; }
         .pb-album-cover-preview { background:#fff; border:1px solid #dcdcde; border-radius:8px; height:96px; object-fit:cover; width:130px; }
@@ -1128,7 +1136,7 @@ function prashant_bootstrap_render_profile_pages_settings_page() {
         .pb-album-photos { display:grid; gap:8px; margin-top:12px; }
         .pb-album-photo-row { align-items:center; background:#fff; border:1px solid #dcdcde; border-radius:8px; display:grid; gap:8px; grid-template-columns:72px 1fr 1fr auto; padding:8px; }
         .pb-album-photo-preview { background:#f6f7f7; border:1px solid #dcdcde; border-radius:6px; height:58px; object-fit:cover; width:72px; }
-        .pb-media-row:last-child, .pb-card-row:last-child { border-bottom:0; }
+        .pb-media-row:last-child { border-bottom:0; }
         .pb-media-preview, .pb-card-preview { background:#f6f7f7; border:1px solid #dcdcde; border-radius:6px; height:60px; object-fit:cover; width:72px; }
         .pb-card-preview { height:78px; width:96px; }
         .pb-media-row[data-mode="gallery"] { grid-template-columns:72px 1fr 1fr 1fr auto; }
@@ -1188,10 +1196,11 @@ function prashant_bootstrap_render_profile_pages_settings_page() {
                     return {
                         title: parts[0] || "",
                         text: parts[1] || "",
-                        image: parts.slice(2).join(" | ") || ""
+                        image: parts[2] || "",
+                        eyebrow: parts.slice(3).join(" | ") || ""
                     };
                 }).filter(function (row) {
-                    return row.title || row.text || row.image;
+                    return row.title || row.text || row.image || row.eyebrow;
                 });
             }
 
@@ -1203,12 +1212,13 @@ function prashant_bootstrap_render_profile_pages_settings_page() {
                     var title = row.find(".pb-card-title-input").val().trim();
                     var text = row.find(".pb-card-text-input").val().trim();
                     var image = row.find(".pb-card-image-input").val().trim();
+                    var eyebrow = row.find(".pb-card-eyebrow-input").val().trim();
 
-                    if (!title && !text && !image) {
+                    if (!title && !text && !image && !eyebrow) {
                         return;
                     }
 
-                    lines.push(title + " | " + text + " | " + image);
+                    lines.push(title + " | " + text + " | " + image + " | " + eyebrow);
                 });
 
                 manager.prev(".pb-card-textarea").val(lines.join("\n"));
@@ -1240,15 +1250,26 @@ function prashant_bootstrap_render_profile_pages_settings_page() {
             function createCardRow(manager, data) {
                 var row = $('<div class="pb-card-row"></div>');
                 var preview = $('<img class="pb-card-preview" alt="">').attr("src", isImageUrl(data.image) ? data.image : "");
+                var fields = $('<div class="pb-card-fields"></div>');
+                var eyebrowWrap = $('<div class="pb-card-field"></div>').append('<label>Card eyebrow</label>');
+                var titleWrap = $('<div class="pb-card-field"></div>').append('<label>Card title</label>');
+                var textWrap = $('<div class="pb-card-field pb-card-field-full"></div>').append('<label>Card details</label>');
+                var imageWrap = $('<div class="pb-card-field pb-card-field-full"></div>').append('<label>Image URL</label>');
+                var eyebrow = $('<input type="text" class="regular-text pb-card-eyebrow-input" placeholder="Optional card eyebrow">').val(data.eyebrow || "");
                 var title = $('<input type="text" class="regular-text pb-card-title-input" placeholder="Card title">').val(data.title || "");
-                var text = $('<textarea class="large-text pb-card-text-input" rows="3" placeholder="Card content"></textarea>').val(data.text || "");
+                var text = $('<textarea class="large-text pb-card-text-input" rows="4" placeholder="Card details"></textarea>').val(data.text || "");
                 var image = $('<input type="text" class="regular-text pb-card-image-input" placeholder="Image URL">').val(data.image || "");
                 var actions = $('<div class="pb-card-actions"></div>');
                 var select = $('<button type="button" class="button pb-card-select">Select Image</button>');
                 var remove = $('<button type="button" class="button-link-delete pb-card-remove">Remove</button>');
 
+                eyebrowWrap.append(eyebrow);
+                titleWrap.append(title);
+                textWrap.append(text);
+                imageWrap.append(image);
+                fields.append(eyebrowWrap, titleWrap, textWrap, imageWrap);
                 actions.append(select, remove);
-                row.append(preview, title, text, image, actions);
+                row.append(preview, fields, actions);
                 manager.find(".pb-card-rows").append(row);
                 serializeCardRows(manager);
             }
@@ -1392,7 +1413,7 @@ function prashant_bootstrap_render_profile_pages_settings_page() {
             });
 
             $(document).on("click", ".pb-card-add", function () {
-                createCardRow($(this).closest(".pb-card-manager"), { title: "", text: "", image: "" });
+                createCardRow($(this).closest(".pb-card-manager"), { title: "", text: "", image: "", eyebrow: "" });
             });
 
             $(document).on("click", ".pb-album-add", function () {
