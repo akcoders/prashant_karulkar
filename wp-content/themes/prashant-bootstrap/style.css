@@ -2121,6 +2121,26 @@ img {
     max-width: 48rem;
 }
 
+.pratishthan-hero-logo-panel {
+    align-items: center;
+    background: #fff;
+    display: flex;
+    justify-content: center;
+    margin: 0 0 0 auto;
+    max-width: 31rem;
+    overflow: hidden;
+    padding: 1.25rem;
+    width: 100%;
+}
+
+.pratishthan-hero-logo-panel img {
+    display: block;
+    height: auto;
+    max-height: 15rem;
+    object-fit: contain;
+    width: 100%;
+}
+
 .profile-breadcrumb {
     align-items: center;
     color: var(--pb-muted);
@@ -3333,9 +3353,29 @@ img {
     width: 100% !important;
 }
 
+.pratishthan-hero-logo-panel {
+    background: #fff !important;
+    margin-left: auto !important;
+    max-width: 31rem !important;
+    padding: 1.25rem !important;
+}
+
+.pratishthan-hero-logo-panel img {
+    background: transparent !important;
+    height: auto !important;
+    max-height: 15rem !important;
+    object-fit: contain !important;
+    width: 100% !important;
+}
+
 @media (max-width: 991.98px) {
     .page-karulkar-pratishthan .profile-image-mosaic {
         column-count: 2 !important;
+    }
+
+    .pratishthan-hero-logo-panel {
+        margin: 0 !important;
+        max-width: 26rem !important;
     }
 }
 

@@ -59,12 +59,14 @@ while ( have_posts() ) :
     $profile_display_title   = $active_album ? $active_album['title'] : ( isset( $data['title'] ) ? $data['title'] : '' );
     $profile_display_eyebrow = $active_album ? __( 'Gallery Album', 'prashant-bootstrap' ) : $data['eyebrow'];
     $profile_display_lead    = $active_album ? sprintf( __( '%s album from %s.', 'prashant-bootstrap' ), $active_album['title'], $data['title'] ) : ( isset( $data['lead'] ) ? $data['lead'] : '' );
+    $show_pratishthan_logo   = 'karulkar-pratishthan' === $page_slug && ! $active_album;
+    $pratishthan_logo_url    = trailingslashit( get_template_directory_uri() ) . 'assets/images/karulkar-pratishthan-logo.png';
     ?>
     <main id="primary" class="site-main profile-section-page page-<?php echo esc_attr( $page_slug ); ?>">
         <section class="profile-hero section-shell">
             <div class="container">
                 <div class="row align-items-center g-4">
-                    <div class="col-12" data-reveal="up">
+                    <div class="<?php echo $show_pratishthan_logo ? 'col-lg-7' : 'col-12'; ?>" data-reveal="up">
                         <nav class="profile-breadcrumb" aria-label="<?php esc_attr_e( 'Breadcrumb', 'prashant-bootstrap' ); ?>">
                             <a href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php esc_html_e( 'Home', 'prashant-bootstrap' ); ?></a>
                             <span><?php echo esc_html( $data['title'] ); ?></span>
@@ -82,6 +84,13 @@ while ( have_posts() ) :
                             <p class="profile-lead mb-0"><?php echo esc_html( $profile_display_lead ); ?></p>
                         <?php endif; ?>
                     </div>
+                    <?php if ( $show_pratishthan_logo ) : ?>
+                        <div class="col-lg-5" data-reveal="left">
+                            <figure class="pratishthan-hero-logo-panel">
+                                <img src="<?php echo esc_url( $pratishthan_logo_url ); ?>" alt="<?php esc_attr_e( 'Karulkar Pratishthan logo', 'prashant-bootstrap' ); ?>" width="1200" height="817">
+                            </figure>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </section>
