@@ -3109,7 +3109,6 @@ img {
     border-radius: 1.1rem;
     box-shadow: none;
     display: flex;
-    height: clamp(140px, 22vw, 240px);
     justify-content: center;
     min-height: 0;
     overflow: visible;
@@ -3224,16 +3223,9 @@ img {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    .hero-visual-shell {
-        height: clamp(130px, 30vw, 220px);
-    }
 }
 
 @media (max-width: 767.98px) {
-    .hero-visual-shell {
-        height: clamp(120px, 42vw, 190px);
-    }
-
     .home-hero-visual,
     .about-portrait-stage {
         grid-template-columns: 1fr;
