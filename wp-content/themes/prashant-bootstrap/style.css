@@ -1589,6 +1589,10 @@ img {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
+    .profile-video-grid {
+        grid-template-columns: 1fr;
+    }
+
     .profile-media-post-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -2677,6 +2681,93 @@ img {
         radial-gradient(circle at top right, rgba(27, 103, 176, 0.12), transparent 28%),
         rgba(255, 255, 255, 0.9);
     min-height: 17rem;
+}
+
+.profile-video-album-cover {
+    position: relative;
+}
+
+.profile-video-album-cover::after {
+    background: linear-gradient(180deg, transparent, rgba(0, 28, 58, 0.5));
+    bottom: 0;
+    content: "";
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+}
+
+.profile-video-cover-placeholder {
+    align-items: center;
+    aspect-ratio: 4 / 3;
+    color: var(--pb-primary-deep);
+    display: flex;
+    font-family: var(--pb-font-display);
+    font-size: clamp(2rem, 3vw, 3rem);
+    justify-content: center;
+}
+
+.profile-video-cover-play {
+    align-items: center;
+    background: rgba(255, 255, 255, 0.94);
+    border-radius: 999px;
+    bottom: 1rem;
+    color: var(--pb-primary);
+    display: inline-flex;
+    font-size: 0.72rem;
+    font-weight: 900;
+    height: 3.2rem;
+    justify-content: center;
+    letter-spacing: 0.08em;
+    position: absolute;
+    right: 1rem;
+    text-transform: uppercase;
+    width: 3.2rem;
+    z-index: 1;
+}
+
+.profile-video-grid {
+    display: grid;
+    gap: 1.25rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.profile-video-player-card {
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(27, 103, 176, 0.1);
+    border-radius: 1.35rem;
+    box-shadow: 0 1.1rem 2.4rem rgba(21, 53, 93, 0.1);
+    overflow: hidden;
+}
+
+.profile-video-frame {
+    background: #07101c;
+    aspect-ratio: 16 / 9;
+    display: block;
+}
+
+.profile-video-frame iframe,
+.profile-video-frame video {
+    border: 0;
+    display: block;
+    height: 100%;
+    width: 100%;
+}
+
+.profile-video-external {
+    align-items: center;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    height: 100%;
+    justify-content: center;
+    min-height: 16rem;
+    text-decoration: none;
+}
+
+.profile-video-player-body {
+    padding: 1.15rem;
 }
 
 .profile-play-mark,

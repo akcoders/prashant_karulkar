@@ -23,7 +23,9 @@ while ( have_posts() ) :
 
     $selected_album = isset( $_GET['album'] ) ? sanitize_title( wp_unslash( $_GET['album'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
     $gallery_albums = array();
+    $video_albums   = array();
     $active_album   = null;
+    $active_video_album = null;
 
     if ( ! empty( $data['galleries'] ) && is_array( $data['galleries'] ) ) {
         foreach ( $data['galleries'] as $gallery ) {
@@ -56,10 +58,40 @@ while ( have_posts() ) :
         }
     }
 
-    $profile_display_title   = $active_album ? $active_album['title'] : ( isset( $data['title'] ) ? $data['title'] : '' );
-    $profile_display_eyebrow = $active_album ? __( 'Gallery Album', 'prashant-bootstrap' ) : $data['eyebrow'];
-    $profile_display_lead    = $active_album ? sprintf( __( '%s album from %s.', 'prashant-bootstrap' ), $active_album['title'], $data['title'] ) : ( isset( $data['lead'] ) ? $data['lead'] : '' );
-    $show_pratishthan_logo   = 'karulkar-pratishthan' === $page_slug && ! $active_album;
+    if ( ! empty( $data['video_albums'] ) && is_array( $data['video_albums'] ) ) {
+        foreach ( $data['video_albums'] as $video_album ) {
+            $album_title = ! empty( $video_album['title'] ) ? $video_album['title'] : __( 'Untitled Video Album', 'prashant-bootstrap' );
+            $album_slug  = sanitize_title( $album_title );
+            $videos      = ! empty( $video_album['videos'] ) && is_array( $video_album['videos'] ) ? $video_album['videos'] : array();
+            $cover       = ! empty( $video_album['cover']['url'] ) ? $video_album['cover'] : array();
+
+            if ( empty( $cover['url'] ) && ! empty( $videos[0]['poster'] ) ) {
+                $cover = array(
+                    'url' => $videos[0]['poster'],
+                    'alt' => $album_title,
+                );
+            }
+
+            $album = array(
+                'slug'   => $album_slug,
+                'title'  => $album_title,
+                'cover'  => $cover,
+                'videos' => $videos,
+            );
+
+            $video_albums[] = $album;
+
+            if ( $selected_album === $album_slug ) {
+                $active_video_album = $album;
+            }
+        }
+    }
+
+    $active_detail_album     = $active_video_album ? $active_video_album : $active_album;
+    $profile_display_title   = $active_detail_album ? $active_detail_album['title'] : ( isset( $data['title'] ) ? $data['title'] : '' );
+    $profile_display_eyebrow = $active_video_album ? __( 'Video Album', 'prashant-bootstrap' ) : ( $active_album ? __( 'Gallery Album', 'prashant-bootstrap' ) : $data['eyebrow'] );
+    $profile_display_lead    = $active_video_album ? sprintf( __( '%s video album from %s.', 'prashant-bootstrap' ), $active_video_album['title'], $data['title'] ) : ( $active_album ? sprintf( __( '%s album from %s.', 'prashant-bootstrap' ), $active_album['title'], $data['title'] ) : ( isset( $data['lead'] ) ? $data['lead'] : '' ) );
+    $show_pratishthan_logo   = 'karulkar-pratishthan' === $page_slug && ! $active_detail_album;
     $pratishthan_logo_url    = trailingslashit( get_template_directory_uri() ) . 'assets/images/karulkar-pratishthan-logo.png';
     ?>
     <main id="primary" class="site-main profile-section-page page-<?php echo esc_attr( $page_slug ); ?>">
@@ -70,8 +102,8 @@ while ( have_posts() ) :
                         <nav class="profile-breadcrumb" aria-label="<?php esc_attr_e( 'Breadcrumb', 'prashant-bootstrap' ); ?>">
                             <a href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php esc_html_e( 'Home', 'prashant-bootstrap' ); ?></a>
                             <span><?php echo esc_html( $data['title'] ); ?></span>
-                            <?php if ( $active_album ) : ?>
-                                <span><?php echo esc_html( $active_album['title'] ); ?></span>
+                            <?php if ( $active_detail_album ) : ?>
+                                <span><?php echo esc_html( $active_detail_album['title'] ); ?></span>
                             <?php endif; ?>
                         </nav>
                         <?php if ( ! empty( $profile_display_eyebrow ) ) : ?>
@@ -494,7 +526,78 @@ while ( have_posts() ) :
             </section>
         <?php endif; ?>
 
-        <?php if ( ! empty( $data['video_cards'] ) ) : ?>
+        <?php if ( ! empty( $data['video_albums'] ) ) : ?>
+            <section class="profile-band">
+                <div class="container">
+                    <?php if ( $active_video_album ) : ?>
+                        <?php $active_videos = ! empty( $active_video_album['videos'] ) ? $active_video_album['videos'] : array(); ?>
+                        <div class="profile-gallery-block profile-video-album-detail" data-reveal="up">
+                            <div class="profile-album-head">
+                                <div>
+                                    <p class="section-eyebrow mb-2"><?php esc_html_e( 'Video Album', 'prashant-bootstrap' ); ?></p>
+                                    <h2 class="profile-section-title mb-0"><?php echo esc_html( $active_video_album['title'] ); ?></h2>
+                                </div>
+                                <div class="profile-album-actions">
+                                    <span class="mini-chip"><?php echo esc_html( count( $active_videos ) ); ?> <?php esc_html_e( 'videos', 'prashant-bootstrap' ); ?></span>
+                                    <a class="btn btn-outline-dark rounded-pill px-4" href="<?php echo esc_url( remove_query_arg( 'album', get_permalink() ) ); ?>"><?php esc_html_e( 'All Video Albums', 'prashant-bootstrap' ); ?></a>
+                                </div>
+                            </div>
+                            <?php if ( ! empty( $active_videos ) ) : ?>
+                                <div class="profile-video-grid">
+                                    <?php foreach ( $active_videos as $video ) : ?>
+                                        <?php
+                                        $video_title = ! empty( $video['title'] ) ? $video['title'] : $active_video_album['title'];
+                                        $video_url   = ! empty( $video['url'] ) ? $video['url'] : '';
+                                        $video_embed = $video_url ? prashant_bootstrap_profile_video_embed_url( $video_url ) : '';
+                                        $is_file     = $video_url ? prashant_bootstrap_profile_is_video_file_url( $video_url ) : false;
+                                        ?>
+                                        <article class="profile-video-player-card">
+                                            <div class="profile-video-frame">
+                                                <?php if ( $video_embed ) : ?>
+                                                    <iframe src="<?php echo esc_url( $video_embed ); ?>" title="<?php echo esc_attr( $video_title ); ?>" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                                                <?php elseif ( $is_file ) : ?>
+                                                    <video controls preload="metadata" <?php echo ! empty( $video['poster'] ) ? 'poster="' . esc_url( $video['poster'] ) . '"' : ''; ?>>
+                                                        <source src="<?php echo esc_url( $video_url ); ?>">
+                                                    </video>
+                                                <?php elseif ( $video_url ) : ?>
+                                                    <a class="profile-video-external" href="<?php echo esc_url( $video_url ); ?>" target="_blank" rel="noopener noreferrer">
+                                                        <span class="profile-play-mark"><?php esc_html_e( 'Play', 'prashant-bootstrap' ); ?></span>
+                                                        <span><?php esc_html_e( 'Open Video', 'prashant-bootstrap' ); ?></span>
+                                                    </a>
+                                                <?php endif; ?>
+                                            </div>
+                                            <div class="profile-video-player-body">
+                                                <h3 class="profile-card-title mb-0"><?php echo esc_html( $video_title ); ?></h3>
+                                            </div>
+                                        </article>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    <?php else : ?>
+                        <div class="profile-album-index profile-video-album-index" data-reveal="up">
+                            <?php foreach ( $video_albums as $album ) : ?>
+                                <a class="profile-album-card profile-video-album-card" href="<?php echo esc_url( add_query_arg( 'album', $album['slug'], get_permalink() ) ); ?>">
+                                    <span class="profile-album-cover profile-video-album-cover">
+                                        <?php if ( ! empty( $album['cover']['url'] ) ) : ?>
+                                            <img src="<?php echo esc_url( $album['cover']['url'] ); ?>" alt="<?php echo esc_attr( $album['title'] ); ?>">
+                                        <?php else : ?>
+                                            <span class="profile-video-cover-placeholder"><?php esc_html_e( 'Video', 'prashant-bootstrap' ); ?></span>
+                                        <?php endif; ?>
+                                        <span class="profile-video-cover-play" aria-hidden="true">Play</span>
+                                    </span>
+                                    <span class="profile-album-body">
+                                        <span class="section-eyebrow"><?php esc_html_e( 'Video Album', 'prashant-bootstrap' ); ?></span>
+                                        <strong><?php echo esc_html( $album['title'] ); ?></strong>
+                                        <span><?php esc_html_e( 'Open Videos', 'prashant-bootstrap' ); ?></span>
+                                    </span>
+                                </a>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </section>
+        <?php elseif ( ! empty( $data['video_cards'] ) ) : ?>
             <section class="profile-band">
                 <div class="container">
                     <div class="row g-4">

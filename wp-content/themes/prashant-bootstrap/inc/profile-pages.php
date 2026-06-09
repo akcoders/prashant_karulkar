@@ -256,6 +256,23 @@ function prashant_bootstrap_profile_page_data() {
             'eyebrow' => 'Video',
             'title'   => 'Video Gallery',
             'lead'    => 'Album-wise video collections for interviews, speeches, launch moments, field stories, and social media features.',
+            'video_albums' => array(
+                array(
+                    'title'  => 'Public Addresses',
+                    'cover'  => array( 'url' => '', 'alt' => 'Public Addresses' ),
+                    'videos' => array(),
+                ),
+                array(
+                    'title'  => 'Media Moments',
+                    'cover'  => array( 'url' => '', 'alt' => 'Media Moments' ),
+                    'videos' => array(),
+                ),
+                array(
+                    'title'  => 'Karulkar Pratishthan Work',
+                    'cover'  => array( 'url' => '', 'alt' => 'Karulkar Pratishthan Work' ),
+                    'videos' => array(),
+                ),
+            ),
             'video_cards' => array(
                 array( 'title' => 'Public Addresses', 'text' => 'Speeches, interviews, felicitation clips, and stage appearances.' ),
                 array( 'title' => 'Media Moments', 'text' => 'News features, digital clips, and public coverage highlights.' ),
@@ -728,6 +745,116 @@ function prashant_bootstrap_profile_parse_albums_json( $raw_json ) {
     return $albums;
 }
 
+function prashant_bootstrap_profile_video_albums_to_json( $albums ) {
+    if ( empty( $albums ) || ! is_array( $albums ) ) {
+        return '[]';
+    }
+
+    $output = array();
+
+    foreach ( $albums as $album ) {
+        $title  = isset( $album['title'] ) ? $album['title'] : __( 'Video Album', 'prashant-bootstrap' );
+        $cover  = isset( $album['cover'] ) && is_array( $album['cover'] ) ? $album['cover'] : array();
+        $videos = ! empty( $album['videos'] ) && is_array( $album['videos'] ) ? $album['videos'] : array();
+
+        $output[] = array(
+            'title'  => $title,
+            'cover'  => array(
+                'url' => isset( $cover['url'] ) ? $cover['url'] : '',
+                'alt' => isset( $cover['alt'] ) ? $cover['alt'] : $title,
+            ),
+            'videos' => array_values(
+                array_filter(
+                    array_map(
+                        function ( $video ) use ( $title ) {
+                            if ( empty( $video['url'] ) ) {
+                                return null;
+                            }
+
+                            return array(
+                                'title'  => isset( $video['title'] ) ? $video['title'] : $title,
+                                'url'    => $video['url'],
+                                'poster' => isset( $video['poster'] ) ? $video['poster'] : '',
+                            );
+                        },
+                        $videos
+                    )
+                )
+            ),
+        );
+    }
+
+    return wp_json_encode( $output, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES );
+}
+
+function prashant_bootstrap_profile_parse_video_albums_json( $raw_json ) {
+    $decoded = json_decode( wp_unslash( $raw_json ), true );
+
+    if ( empty( $decoded ) || ! is_array( $decoded ) ) {
+        return array();
+    }
+
+    $albums = array();
+
+    foreach ( $decoded as $album ) {
+        if ( ! is_array( $album ) ) {
+            continue;
+        }
+
+        $title = isset( $album['title'] ) ? sanitize_text_field( $album['title'] ) : '';
+        if ( '' === $title ) {
+            continue;
+        }
+
+        $videos = array();
+        if ( ! empty( $album['videos'] ) && is_array( $album['videos'] ) ) {
+            foreach ( $album['videos'] as $video ) {
+                if ( empty( $video['url'] ) ) {
+                    continue;
+                }
+
+                $videos[] = array(
+                    'title'  => isset( $video['title'] ) ? sanitize_text_field( $video['title'] ) : $title,
+                    'url'    => esc_url_raw( $video['url'] ),
+                    'poster' => isset( $video['poster'] ) ? esc_url_raw( $video['poster'] ) : '',
+                );
+            }
+        }
+
+        $cover_url = isset( $album['cover']['url'] ) ? esc_url_raw( $album['cover']['url'] ) : '';
+        $cover_alt = isset( $album['cover']['alt'] ) ? sanitize_text_field( $album['cover']['alt'] ) : $title;
+
+        $albums[] = array(
+            'title'  => $title,
+            'cover'  => array(
+                'url' => $cover_url,
+                'alt' => $cover_alt,
+            ),
+            'videos' => $videos,
+        );
+    }
+
+    return $albums;
+}
+
+function prashant_bootstrap_profile_video_embed_url( $url ) {
+    if ( function_exists( 'prashant_bootstrap_youtube_embed_url' ) ) {
+        $youtube_embed = prashant_bootstrap_youtube_embed_url( $url );
+
+        if ( $youtube_embed ) {
+            return remove_query_arg( array( 'autoplay', 'mute', 'controls' ), $youtube_embed );
+        }
+    }
+
+    return '';
+}
+
+function prashant_bootstrap_profile_is_video_file_url( $url ) {
+    $path = wp_parse_url( $url, PHP_URL_PATH );
+
+    return $path && (bool) preg_match( '/\.(mp4|webm|ogg|mov)$/i', $path );
+}
+
 function prashant_bootstrap_profile_parse_images_text( $raw_text ) {
     $rows   = prashant_bootstrap_parse_text_list( $raw_text );
     $images = array();
@@ -914,6 +1041,20 @@ function prashant_bootstrap_apply_profile_page_overrides( $slug, $data ) {
         } else {
             $data['galleries'] = array();
         }
+        }
+    }
+
+    if ( array_key_exists( 'video_albums', $page_options ) ) {
+        if ( '' === trim( $page_options['video_albums'] ) ) {
+            $data['video_albums'] = array();
+        } else {
+            $parsed_video_albums = prashant_bootstrap_profile_parse_video_albums_json( $page_options['video_albums'] );
+
+            if ( ! empty( $parsed_video_albums ) ) {
+                $data['video_albums'] = $parsed_video_albums;
+            } else {
+                $data['video_albums'] = array();
+            }
         }
     }
 
@@ -1137,6 +1278,22 @@ function prashant_bootstrap_render_profile_pages_settings_page() {
                                     </td>
                                 </tr>
                             <?php endif; ?>
+
+                            <?php if ( ! empty( $page['video_albums'] ) || 'video-gallery' === $slug ) : ?>
+                                <?php
+                                if ( isset( $options[ $slug ]['video_albums'] ) && '' !== trim( $options[ $slug ]['video_albums'] ) ) {
+                                    $video_album_value = $options[ $slug ]['video_albums'];
+                                } else {
+                                    $video_album_value = prashant_bootstrap_profile_video_albums_to_json( isset( $page['video_albums'] ) ? $page['video_albums'] : array() );
+                                }
+                                ?>
+                                <tr>
+                                    <th scope="row"><?php esc_html_e( 'Manage Video Albums', 'prashant-bootstrap' ); ?></th>
+                                    <td>
+                                        <textarea class="large-text code pb-video-album-textarea" rows="8" name="prashant_bootstrap_profile_pages_options[<?php echo esc_attr( $slug ); ?>][video_albums]"><?php echo esc_textarea( $video_album_value ); ?></textarea>
+                                    </td>
+                                </tr>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </details>
@@ -1146,8 +1303,8 @@ function prashant_bootstrap_render_profile_pages_settings_page() {
         </form>
     </div>
     <style>
-        .pb-media-textarea, .pb-card-textarea, .pb-album-textarea { display:none; }
-        .pb-media-manager, .pb-card-manager, .pb-album-manager { background:#fff; border:1px solid #dcdcde; border-radius:8px; margin-top:10px; padding:12px; }
+        .pb-media-textarea, .pb-card-textarea, .pb-album-textarea, .pb-video-album-textarea { display:none; }
+        .pb-media-manager, .pb-card-manager, .pb-album-manager, .pb-video-album-manager { background:#fff; border:1px solid #dcdcde; border-radius:8px; margin-top:10px; padding:12px; }
         .pb-media-row { align-items:center; border-bottom:1px solid #f0f0f1; display:grid; gap:10px; grid-template-columns:72px 1fr 1fr auto; padding:10px 0; }
         .pb-card-row { background:#f6f7f7; border:1px solid #dcdcde; border-radius:10px; display:grid; gap:14px; grid-template-columns:130px minmax(0, 1fr) 150px; margin:0 0 14px; padding:14px; }
         .pb-card-fields { display:grid; gap:10px; grid-template-columns:repeat(2, minmax(0, 1fr)); }
@@ -1164,18 +1321,27 @@ function prashant_bootstrap_render_profile_pages_settings_page() {
         .pb-album-photos { display:grid; gap:8px; margin-top:12px; }
         .pb-album-photo-row { align-items:center; background:#fff; border:1px solid #dcdcde; border-radius:8px; display:grid; gap:8px; grid-template-columns:72px 1fr 1fr auto; padding:8px; }
         .pb-album-photo-preview { background:#f6f7f7; border:1px solid #dcdcde; border-radius:6px; height:58px; object-fit:cover; width:72px; }
+        .pb-video-album-card { background:#f6f7f7; border:1px solid #dcdcde; border-radius:10px; margin-bottom:14px; padding:14px; }
+        .pb-video-album-head { align-items:start; display:grid; gap:12px; grid-template-columns:150px 1fr auto; }
+        .pb-video-album-cover-preview { background:#fff; border:1px solid #dcdcde; border-radius:8px; height:96px; object-fit:cover; width:150px; }
+        .pb-video-album-fields { display:grid; gap:8px; }
+        .pb-video-rows { display:grid; gap:8px; margin-top:12px; }
+        .pb-video-row { align-items:center; background:#fff; border:1px solid #dcdcde; border-radius:8px; display:grid; gap:8px; grid-template-columns:72px 1fr 1fr 1fr auto; padding:8px; }
+        .pb-video-poster-preview { background:#f6f7f7; border:1px solid #dcdcde; border-radius:6px; height:58px; object-fit:cover; width:72px; }
         .pb-media-row:last-child { border-bottom:0; }
         .pb-media-preview, .pb-card-preview { background:#f6f7f7; border:1px solid #dcdcde; border-radius:6px; height:60px; object-fit:cover; width:72px; }
         .pb-card-preview { height:78px; width:96px; }
         .pb-media-row[data-mode="gallery"] { grid-template-columns:72px 1fr 1fr 1fr auto; }
-        .pb-media-actions, .pb-card-actions, .pb-album-actions, .pb-album-photo-actions { display:flex; flex-direction:column; gap:6px; }
+        .pb-media-actions, .pb-card-actions, .pb-album-actions, .pb-album-photo-actions, .pb-video-album-actions, .pb-video-actions { display:flex; flex-direction:column; gap:6px; }
         @media (max-width: 900px) {
             .pb-media-row,
             .pb-media-row[data-mode="gallery"],
             .pb-card-row,
             .pb-album-head,
-            .pb-album-photo-row { grid-template-columns:1fr; }
-            .pb-media-preview, .pb-card-preview, .pb-album-cover-preview, .pb-album-photo-preview { height:auto; max-width:180px; width:100%; }
+            .pb-album-photo-row,
+            .pb-video-album-head,
+            .pb-video-row { grid-template-columns:1fr; }
+            .pb-media-preview, .pb-card-preview, .pb-album-cover-preview, .pb-album-photo-preview, .pb-video-album-cover-preview, .pb-video-poster-preview { height:auto; max-width:180px; width:100%; }
         }
     </style>
     <script>
@@ -1391,6 +1557,97 @@ function prashant_bootstrap_render_profile_pages_settings_page() {
                 serializeAlbums(manager);
             }
 
+            function parseVideoAlbums(value) {
+                try {
+                    var albums = JSON.parse(value || "[]");
+                    return Array.isArray(albums) ? albums : [];
+                } catch (error) {
+                    return [];
+                }
+            }
+
+            function serializeVideoAlbums(manager) {
+                var albums = [];
+
+                manager.find(".pb-video-album-card").each(function () {
+                    var card = $(this);
+                    var title = card.find(".pb-video-album-title-input").val().trim();
+                    var coverUrl = card.find(".pb-video-album-cover-input").val().trim();
+                    var coverAlt = card.find(".pb-video-album-cover-alt-input").val().trim();
+                    var videos = [];
+
+                    card.find(".pb-video-row").each(function () {
+                        var row = $(this);
+                        var videoTitle = row.find(".pb-video-title").val().trim();
+                        var videoUrl = row.find(".pb-video-url").val().trim();
+                        var poster = row.find(".pb-video-poster").val().trim();
+
+                        if (!videoUrl) {
+                            return;
+                        }
+
+                        videos.push({ title: videoTitle, url: videoUrl, poster: poster });
+                    });
+
+                    if (!title && !coverUrl && !videos.length) {
+                        return;
+                    }
+
+                    albums.push({
+                        title: title || "Video Album",
+                        cover: { url: coverUrl, alt: coverAlt || title },
+                        videos: videos
+                    });
+                });
+
+                manager.prev(".pb-video-album-textarea").val(JSON.stringify(albums, null, 2));
+            }
+
+            function createVideoRow(albumCard, data) {
+                var row = $('<div class="pb-video-row"></div>');
+                var preview = $('<img class="pb-video-poster-preview" alt="">').attr("src", data.poster || "");
+                var title = $('<input type="text" class="regular-text pb-video-title" placeholder="Video title">').val(data.title || "");
+                var url = $('<input type="url" class="regular-text pb-video-url" placeholder="YouTube or video URL">').val(data.url || "");
+                var poster = $('<input type="url" class="regular-text pb-video-poster" placeholder="Poster image URL">').val(data.poster || "");
+                var actions = $('<div class="pb-video-actions"></div>');
+                var selectPoster = $('<button type="button" class="button pb-video-poster-select">Select Poster</button>');
+                var remove = $('<button type="button" class="button-link-delete pb-video-remove">Remove</button>');
+
+                actions.append(selectPoster, remove);
+                row.append(preview, title, url, poster, actions);
+                albumCard.find(".pb-video-rows").append(row);
+                serializeVideoAlbums(albumCard.closest(".pb-video-album-manager"));
+            }
+
+            function createVideoAlbumCard(manager, data) {
+                var album = data || {};
+                var cover = album.cover || {};
+                var card = $('<div class="pb-video-album-card"></div>');
+                var head = $('<div class="pb-video-album-head"></div>');
+                var preview = $('<img class="pb-video-album-cover-preview" alt="">').attr("src", cover.url || "");
+                var fields = $('<div class="pb-video-album-fields"></div>');
+                var title = $('<input type="text" class="large-text pb-video-album-title-input" placeholder="Video album title">').val(album.title || "");
+                var coverUrl = $('<input type="url" class="large-text pb-video-album-cover-input" placeholder="Cover image URL">').val(cover.url || "");
+                var coverAlt = $('<input type="text" class="large-text pb-video-album-cover-alt-input" placeholder="Cover alt text">').val(cover.alt || "");
+                var actions = $('<div class="pb-video-album-actions"></div>');
+                var selectCover = $('<button type="button" class="button pb-video-album-cover-select">Select Cover</button>');
+                var addVideo = $('<button type="button" class="button button-secondary pb-video-add">Add Video</button>');
+                var removeAlbum = $('<button type="button" class="button-link-delete pb-video-album-remove">Remove Album</button>');
+                var videos = $('<div class="pb-video-rows"></div>');
+
+                fields.append(title, coverUrl, coverAlt);
+                actions.append(selectCover, addVideo, removeAlbum);
+                head.append(preview, fields, actions);
+                card.append(head, videos);
+                manager.find(".pb-video-album-list").append(card);
+
+                (album.videos || []).forEach(function (video) {
+                    createVideoRow(card, video);
+                });
+
+                serializeVideoAlbums(manager);
+            }
+
             function initCardManager(textarea) {
                 var input = $(textarea);
                 var manager = $('<div class="pb-card-manager"></div>');
@@ -1417,6 +1674,21 @@ function prashant_bootstrap_render_profile_pages_settings_page() {
 
                 albums.forEach(function (album) {
                     createAlbumCard(manager, album);
+                });
+            }
+
+            function initVideoAlbumManager(textarea) {
+                var input = $(textarea);
+                var manager = $('<div class="pb-video-album-manager"></div>');
+                var list = $('<div class="pb-video-album-list"></div>');
+                var add = $('<button type="button" class="button button-secondary pb-video-album-add">Add Video Album</button>');
+                var albums = parseVideoAlbums(input.val());
+
+                manager.append(list, add);
+                input.after(manager);
+
+                albums.forEach(function (album) {
+                    createVideoAlbumCard(manager, album);
                 });
             }
 
@@ -1448,8 +1720,16 @@ function prashant_bootstrap_render_profile_pages_settings_page() {
                 createAlbumCard($(this).closest(".pb-album-manager"), { title: "", cover: { url: "", alt: "" }, images: [] });
             });
 
+            $(document).on("click", ".pb-video-album-add", function () {
+                createVideoAlbumCard($(this).closest(".pb-video-album-manager"), { title: "", cover: { url: "", alt: "" }, videos: [] });
+            });
+
             $(document).on("click", ".pb-album-photo-add", function () {
                 createAlbumPhotoRow($(this).closest(".pb-album-card"), { url: "", alt: "" });
+            });
+
+            $(document).on("click", ".pb-video-add", function () {
+                createVideoRow($(this).closest(".pb-video-album-card"), { title: "", url: "", poster: "" });
             });
 
             $(document).on("click", ".pb-media-remove", function () {
@@ -1470,10 +1750,22 @@ function prashant_bootstrap_render_profile_pages_settings_page() {
                 serializeAlbums(manager);
             });
 
+            $(document).on("click", ".pb-video-album-remove", function () {
+                var manager = $(this).closest(".pb-video-album-manager");
+                $(this).closest(".pb-video-album-card").remove();
+                serializeVideoAlbums(manager);
+            });
+
             $(document).on("click", ".pb-album-photo-remove", function () {
                 var manager = $(this).closest(".pb-album-manager");
                 $(this).closest(".pb-album-photo-row").remove();
                 serializeAlbums(manager);
+            });
+
+            $(document).on("click", ".pb-video-remove", function () {
+                var manager = $(this).closest(".pb-video-album-manager");
+                $(this).closest(".pb-video-row").remove();
+                serializeVideoAlbums(manager);
             });
 
             $(document).on("input", ".pb-media-row input", function () {
@@ -1501,6 +1793,18 @@ function prashant_bootstrap_render_profile_pages_settings_page() {
                     row.find(".pb-album-photo-preview").attr("src", row.find(".pb-album-photo-url").val());
                 });
                 serializeAlbums(manager);
+            });
+
+            $(document).on("input", ".pb-video-album-card input", function () {
+                var card = $(this).closest(".pb-video-album-card");
+                var manager = card.closest(".pb-video-album-manager");
+
+                card.find(".pb-video-album-cover-preview").attr("src", card.find(".pb-video-album-cover-input").val());
+                card.find(".pb-video-row").each(function () {
+                    var row = $(this);
+                    row.find(".pb-video-poster-preview").attr("src", row.find(".pb-video-poster").val());
+                });
+                serializeVideoAlbums(manager);
             });
 
             $(document).on("click", ".pb-media-select", function () {
@@ -1574,6 +1878,45 @@ function prashant_bootstrap_render_profile_pages_settings_page() {
                 frame.open();
             });
 
+            $(document).on("click", ".pb-video-album-cover-select", function () {
+                var card = $(this).closest(".pb-video-album-card");
+                var manager = card.closest(".pb-video-album-manager");
+                var frame = wp.media({
+                    title: "Select video album cover",
+                    button: { text: "Use as cover" },
+                    multiple: false
+                });
+
+                frame.on("select", function () {
+                    var attachment = frame.state().get("selection").first().toJSON();
+                    card.find(".pb-video-album-cover-input").val(attachment.url);
+                    card.find(".pb-video-album-cover-alt-input").val(attachment.alt || attachment.title || card.find(".pb-video-album-title-input").val());
+                    card.find(".pb-video-album-cover-preview").attr("src", attachment.url);
+                    serializeVideoAlbums(manager);
+                });
+
+                frame.open();
+            });
+
+            $(document).on("click", ".pb-video-poster-select", function () {
+                var row = $(this).closest(".pb-video-row");
+                var manager = row.closest(".pb-video-album-manager");
+                var frame = wp.media({
+                    title: "Select video poster",
+                    button: { text: "Use as poster" },
+                    multiple: false
+                });
+
+                frame.on("select", function () {
+                    var attachment = frame.state().get("selection").first().toJSON();
+                    row.find(".pb-video-poster").val(attachment.url);
+                    row.find(".pb-video-poster-preview").attr("src", attachment.url);
+                    serializeVideoAlbums(manager);
+                });
+
+                frame.open();
+            });
+
             $(document).on("click", ".pb-card-select", function () {
                 var row = $(this).closest(".pb-card-row");
                 var manager = row.closest(".pb-card-manager");
@@ -1602,6 +1945,9 @@ function prashant_bootstrap_render_profile_pages_settings_page() {
                 });
                 $(".pb-album-textarea").each(function () {
                     initAlbumManager(this);
+                });
+                $(".pb-video-album-textarea").each(function () {
+                    initVideoAlbumManager(this);
                 });
             });
         })(jQuery);
