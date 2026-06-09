@@ -204,7 +204,7 @@ function prashant_bootstrap_profile_page_data() {
         'timeline-journey-so-far' => array(
             'eyebrow' => 'Journey So Far',
             'title'   => 'Timeline',
-            'lead'    => 'A concise journey from family-led public service to national recognitions, major business milestones, global forums, and publications.',
+            'lead'    => '',
             'timeline' => array(
                 array( 'year' => '1969', 'title' => 'Karulkar Pratishthan foundation legacy', 'text' => 'The Karulkar family foundation begins a long-running commitment to welfare and education.' ),
                 array( 'year' => '2014', 'title' => 'INR 1,111 Crore land deal', 'text' => 'Completed a historic Sahara Group land acquisition after complex legal and institutional processes.' ),
@@ -219,7 +219,7 @@ function prashant_bootstrap_profile_page_data() {
         'awards-achievements-felicitations' => array(
             'eyebrow' => 'Recognition',
             'title'   => 'Awards, Achievements, Felicitations',
-            'lead'    => 'Major recognitions and felicitations from national leaders, institutional forums, and public platforms.',
+            'lead'    => '',
             'cards'   => array(
                 array( 'title' => 'Shri Amit Shah', 'text' => 'Felicitated for social work and contribution as co-author and initiative partner for Karmayoddha.', 'folder' => "$important/Amit Shah- Home Minister (2020)" ),
                 array( 'title' => 'Shri Mohan Bhagwat', 'text' => 'Felicitated for social contributions and as a young entrepreneur at Vigyan Bhawan, New Delhi.', 'folder' => "$important/mohanji bhagwat 2019-2019-2022-2024" ),
@@ -232,7 +232,7 @@ function prashant_bootstrap_profile_page_data() {
         'accolades' => array(
             'eyebrow' => 'Accolades',
             'title'   => 'Institutional Accolades',
-            'lead'    => 'A network of public-life meetings, dignitary recognitions, global forums, spiritual blessings, and institutional acknowledgements.',
+            'lead'    => '',
             'images'  => prashant_bootstrap_profile_images( 'Photos with Ministers and others/Ministers and others', 10 ),
             'lists'   => array(
                 array( 'heading' => 'Institutional honours', 'items' => array( 'Chief Guest at the 59th ABCI Annual Awards Ceremony.', 'Corporate Member presence at WCFA, Davos.', 'Recognised by World Book of Records, London for social support during COVID-19.' ) ),
@@ -297,7 +297,7 @@ function prashant_bootstrap_profile_page_data() {
         'media-coverage' => array(
             'eyebrow' => 'Media',
             'title'   => 'Media Coverage',
-            'lead'    => 'A page for public coverage, newspaper moments, social media visibility, News Danka references, and media-led institutional memory.',
+            'lead'    => '',
             'images'  => prashant_bootstrap_profile_images( "$important/Books (Article written by Sir)/Corporate Lens", 8 ),
             'cards'   => array(
                 array( 'title' => 'India\'s biggest land deal headline', 'text' => 'On 29 November 2014, Prashant Karulkar was highlighted in leading newspapers for a landmark INR 1,111 Crore land deal.' ),
@@ -308,7 +308,7 @@ function prashant_bootstrap_profile_page_data() {
         'social-media' => array(
             'eyebrow' => 'Digital Presence',
             'title'   => 'Social Media',
-            'lead'    => 'A dedicated page for official links, follower/view milestones, and public digital reach.',
+            'lead'    => '',
             'social_links' => array(
                 array( 'label' => 'Prashant Karulkar Linktree', 'url' => 'https://linktr.ee/prashantkarulkar', 'metric' => 'Official social and digital presence' ),
                 array( 'label' => 'Vivaan Karulkar Linktree', 'url' => 'https://linktree.com/vivaankarulkar', 'metric' => 'Books, media buzz, and youth author presence' ),

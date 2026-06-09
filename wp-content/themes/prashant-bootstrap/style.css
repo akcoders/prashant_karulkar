@@ -859,7 +859,7 @@ img {
 
 .hero-visual-shell {
     align-items: stretch;
-    aspect-ratio: 16 / 5;
+    aspect-ratio: auto;
     background: #f4efe6;
     border-radius: calc(var(--pb-radius) + 0.25rem);
     box-shadow: 0 1.6rem 3.5rem rgba(27, 65, 117, 0.14);
@@ -3296,7 +3296,7 @@ img {
 }
 
 .hero-visual-shell {
-    aspect-ratio: 16 / 5 !important;
+    aspect-ratio: auto !important;
     min-height: 0 !important;
 }
 
