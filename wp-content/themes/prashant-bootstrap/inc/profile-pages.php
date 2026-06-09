@@ -166,6 +166,7 @@ function prashant_bootstrap_profile_images( $relative_dir, $limit = 8 ) {
 
 function prashant_bootstrap_profile_page_data() {
     $important = 'For Website (PK sir_s IMP Data)';
+    $social_thumb_base = trailingslashit( get_template_directory_uri() ) . 'assets/images/social-thumbnails/';
 
     return array(
         'about-prashant-karulkar' => array(
@@ -310,14 +311,16 @@ function prashant_bootstrap_profile_page_data() {
             'title'   => 'Social Media',
             'lead'    => '',
             'social_links' => array(
-                array( 'label' => 'Prashant Karulkar Linktree', 'url' => 'https://linktr.ee/prashantkarulkar', 'metric' => 'Official social and digital presence' ),
-                array( 'label' => 'Vivaan Karulkar Linktree', 'url' => 'https://linktree.com/vivaankarulkar', 'metric' => 'Books, media buzz, and youth author presence' ),
+                array( 'label' => 'Facebook', 'url' => 'https://www.facebook.com/prashantkarulkar', 'metric' => '' ),
+                array( 'label' => 'Instagram', 'url' => 'https://www.instagram.com/prashant.karulkar', 'metric' => '' ),
+                array( 'label' => 'X', 'url' => 'https://x.com/prash2011', 'metric' => '' ),
+                array( 'label' => 'LinkedIn', 'url' => 'https://www.linkedin.com/in/prashantkarulkar', 'metric' => '' ),
             ),
             'stats' => array(
-                array( 'number' => 'Official', 'label' => 'Instagram followers' ),
-                array( 'number' => 'Growing', 'label' => 'YouTube views' ),
-                array( 'number' => 'Active', 'label' => 'LinkedIn reach' ),
-                array( 'number' => 'Featured', 'label' => 'Press and social mentions' ),
+                array( 'number' => $social_thumb_base . 'facebook.jpg', 'label' => 'Facebook' ),
+                array( 'number' => $social_thumb_base . 'instagram.jpg', 'label' => 'Instagram' ),
+                array( 'number' => $social_thumb_base . 'x.jpg', 'label' => 'X' ),
+                array( 'number' => $social_thumb_base . 'linkedin.jpg', 'label' => 'LinkedIn' ),
             ),
         ),
     );
@@ -332,6 +335,27 @@ function prashant_bootstrap_get_profile_page_data( $slug ) {
 
     $data    = prashant_bootstrap_apply_profile_page_overrides( $slug, $pages[ $slug ] );
     $options = get_option( 'prashant_bootstrap_profile_pages_options', array() );
+
+    if ( 'social-media' === $slug ) {
+        $has_thumbnail_stats = false;
+
+        if ( ! empty( $data['stats'] ) && is_array( $data['stats'] ) ) {
+            foreach ( $data['stats'] as $stat ) {
+                if ( ! empty( $stat['number'] ) && filter_var( $stat['number'], FILTER_VALIDATE_URL ) ) {
+                    $has_thumbnail_stats = true;
+                    break;
+                }
+            }
+        }
+
+        if ( ! $has_thumbnail_stats ) {
+            $data['stats'] = $pages[ $slug ]['stats'];
+        }
+
+        if ( empty( $data['social_links'] ) || count( $data['social_links'] ) < 4 ) {
+            $data['social_links'] = $pages[ $slug ]['social_links'];
+        }
+    }
 
     if ( 'accolades' === $slug && empty( $options[ $slug ]['cards'] ) && ! empty( $data['images'] ) ) {
         $data['cards'] = prashant_bootstrap_accolade_cards_from_images( $data['images'] );
@@ -1039,6 +1063,10 @@ function prashant_bootstrap_render_profile_pages_settings_page() {
                                 'video_cards'  => array( __( 'Video Cards', 'prashant-bootstrap' ), 'title | text', array( 'title', 'text' ) ),
                                 'social_links' => array( __( 'Social Links', 'prashant-bootstrap' ), 'label | url | metric/details', array( 'label', 'url', 'metric' ) ),
                             );
+
+                            if ( 'social-media' === $slug ) {
+                                $editable_fields['stats'] = array( __( 'Platform Thumbnail Cards', 'prashant-bootstrap' ), 'thumbnail image URL | platform name', array( 'number', 'label' ) );
+                            }
                             ?>
 
                             <?php foreach ( $editable_fields as $field => $field_data ) : ?>

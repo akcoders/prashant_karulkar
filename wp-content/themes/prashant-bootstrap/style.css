@@ -2793,6 +2793,157 @@ img {
     background:
         radial-gradient(circle at top right, rgba(216, 156, 74, 0.14), transparent 30%),
         rgba(255, 255, 255, 0.9);
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 13.5rem;
+    text-align: center;
+}
+
+.page-social-media .profile-stat-card p {
+    color: var(--pb-primary-deep);
+    font-size: 1.05rem;
+    font-weight: 800;
+}
+
+.profile-stat-platform-link {
+    align-items: center;
+    color: var(--pb-primary-deep);
+    display: flex;
+    flex-direction: column;
+    font-size: 1.05rem;
+    font-weight: 800;
+    height: 100%;
+    justify-content: center;
+    text-decoration: none;
+    width: 100%;
+}
+
+.profile-stat-platform-link:hover,
+.profile-stat-platform-link:focus {
+    color: var(--pb-primary);
+}
+
+.profile-stat-thumbnail-wrap {
+    border-radius: 1.35rem;
+    display: block;
+    margin: 0 auto 1rem;
+    padding: 0.25rem;
+    position: relative;
+}
+
+.profile-stat-thumbnail {
+    background: #fff;
+    border: 1px solid rgba(27, 103, 176, 0.12);
+    border-radius: 1.2rem;
+    box-shadow: 0 1rem 2.2rem rgba(21, 53, 93, 0.12);
+    display: block;
+    height: 7rem;
+    margin: 0 auto 1rem;
+    object-fit: cover;
+    width: 7rem;
+}
+
+.profile-stat-thumbnail-badge {
+    align-items: center;
+    border: 3px solid #fff;
+    border-radius: 999px;
+    bottom: -0.1rem;
+    color: #fff;
+    display: inline-flex;
+    height: 2.25rem;
+    justify-content: center;
+    position: absolute;
+    right: -0.1rem;
+    width: 2.25rem;
+}
+
+.profile-stat-thumbnail-badge svg,
+.profile-stat-platform-name-icon svg {
+    display: block;
+    height: 1rem;
+    width: 1rem;
+}
+
+.profile-stat-thumbnail-badge svg *,
+.profile-stat-platform-name-icon svg * {
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8;
+}
+
+.profile-stat-thumbnail-badge svg path,
+.profile-stat-platform-name-icon svg path {
+    fill: currentColor;
+    stroke: none;
+}
+
+.profile-stat-thumbnail-badge svg circle,
+.profile-stat-thumbnail-badge svg rect,
+.profile-stat-platform-name-icon svg circle,
+.profile-stat-platform-name-icon svg rect {
+    fill: none;
+}
+
+.profile-stat-thumbnail-badge svg path + path,
+.profile-stat-platform-name-icon svg path + path {
+    fill: #fff;
+}
+
+.profile-stat-platform-name {
+    align-items: center;
+    display: inline-flex;
+    gap: 0.45rem;
+    justify-content: center;
+}
+
+.profile-stat-platform-name-icon {
+    align-items: center;
+    border-radius: 999px;
+    color: #fff;
+    display: inline-flex;
+    height: 1.75rem;
+    justify-content: center;
+    width: 1.75rem;
+}
+
+.profile-stat-platform-facebook .profile-stat-thumbnail-wrap {
+    background: linear-gradient(135deg, #1877f2, #68a8ff);
+}
+
+.profile-stat-platform-facebook .profile-stat-thumbnail-badge,
+.profile-stat-platform-facebook .profile-stat-platform-name-icon {
+    background: #1877f2;
+}
+
+.profile-stat-platform-instagram .profile-stat-thumbnail-wrap {
+    background: linear-gradient(135deg, #f58529, #dd2a7b 52%, #515bd4);
+}
+
+.profile-stat-platform-instagram .profile-stat-thumbnail-badge,
+.profile-stat-platform-instagram .profile-stat-platform-name-icon {
+    background: linear-gradient(135deg, #f58529, #dd2a7b 52%, #515bd4);
+}
+
+.profile-stat-platform-x .profile-stat-thumbnail-wrap {
+    background: linear-gradient(135deg, #111, #555);
+}
+
+.profile-stat-platform-x .profile-stat-thumbnail-badge,
+.profile-stat-platform-x .profile-stat-platform-name-icon {
+    background: #111;
+}
+
+.profile-stat-platform-linkedin .profile-stat-thumbnail-wrap {
+    background: linear-gradient(135deg, #0a66c2, #5aa6e8);
+}
+
+.profile-stat-platform-linkedin .profile-stat-thumbnail-badge,
+.profile-stat-platform-linkedin .profile-stat-platform-name-icon {
+    background: #0a66c2;
 }
 
 .page-social-media .profile-social-icon,
@@ -3309,7 +3460,7 @@ img {
 
 .hero-visual-shell {
     aspect-ratio: auto !important;
-    min-height: 0 !important;
+    min-height: clamp(260px, 32vw, 520px) !important;
     overflow: hidden !important;
 }
 
@@ -3321,6 +3472,7 @@ img {
 
 .hero-slide-video {
     height: 100% !important;
+    min-height: clamp(260px, 32vw, 520px) !important;
     object-fit: cover !important;
     width: 100% !important;
 }

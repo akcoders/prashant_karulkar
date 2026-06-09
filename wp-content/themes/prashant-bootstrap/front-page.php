@@ -17,11 +17,10 @@ $home_images      = array(
 );
 $keyword_line     = $homepage_options['hero_keyword_line'];
 $hero_quote       = $homepage_options['hero_quote'];
-$daily_quotes     = prashant_bootstrap_get_daily_quotes();
-$daily_quote      = ! empty( $daily_quotes ) ? $daily_quotes[ (int) current_time( 'z' ) % count( $daily_quotes ) ] : 'Purpose-led thinking builds enduring legacy.';
+$daily_quote      = __( 'no quote image for today', 'prashant-bootstrap' );
 $daily_quote_images = function_exists( 'prashant_bootstrap_get_daily_quote_images' ) ? prashant_bootstrap_get_daily_quote_images() : array();
-$daily_quote_image  = function_exists( 'prashant_bootstrap_get_today_quote_image' ) ? prashant_bootstrap_get_today_quote_image( $daily_quote_images ) : ( ! empty( $daily_quote_images ) ? $daily_quote_images[ (int) current_time( 'z' ) % count( $daily_quote_images ) ] : array() );
-$daily_quote_is_image = ! empty( $daily_quote_image['url'] ) || ( function_exists( 'prashant_bootstrap_is_image_url' ) && prashant_bootstrap_is_image_url( $daily_quote ) );
+$daily_quote_image  = function_exists( 'prashant_bootstrap_get_today_quote_image' ) ? prashant_bootstrap_get_today_quote_image( $daily_quote_images ) : array();
+$daily_quote_is_image = ! empty( $daily_quote_image['url'] );
 $default_slides   = array(
     array(
         'eyebrow' => 'Recognition',

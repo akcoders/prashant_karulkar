@@ -145,16 +145,52 @@ while ( have_posts() ) :
                         <?php foreach ( $data['stats'] as $stat ) : ?>
                             <div class="<?php echo ! empty( $data['about_spotlight'] ) ? 'col-md-4' : 'col-md-6 col-xl-3'; ?>" data-reveal="up">
                                 <article class="profile-stat-card">
-                                    <?php if ( ! empty( $data['social_links'] ) ) : ?>
-                                        <div class="profile-stat-icon profile-stat-icon-<?php echo esc_attr( prashant_bootstrap_get_social_platform_class( $stat['label'] ) ); ?>">
-                                            <?php echo prashant_bootstrap_get_social_icon_svg( $stat['label'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-                                        </div>
-                                    <?php endif; ?>
-                                    <?php if ( ! empty( $stat['number'] ) ) : ?>
-                                        <div class="profile-stat-number"><?php echo esc_html( $stat['number'] ); ?></div>
-                                    <?php endif; ?>
-                                    <?php if ( ! empty( $stat['label'] ) ) : ?>
-                                        <p class="mb-0"><?php echo esc_html( $stat['label'] ); ?></p>
+                                    <?php
+                                    $stat_number = isset( $stat['number'] ) ? trim( $stat['number'] ) : '';
+                                    $stat_label  = isset( $stat['label'] ) ? trim( $stat['label'] ) : '';
+                                    $stat_image  = 'social-media' === $page_slug && '' !== $stat_number && filter_var( $stat_number, FILTER_VALIDATE_URL );
+                                    $stat_url    = '';
+
+                                    if ( $stat_image && ! empty( $data['social_links'] ) ) {
+                                        foreach ( $data['social_links'] as $social_link ) {
+                                            if ( ! empty( $social_link['label'] ) && 0 === strcasecmp( $stat_label, $social_link['label'] ) && ! empty( $social_link['url'] ) ) {
+                                                $stat_url = $social_link['url'];
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    ?>
+                                    <?php if ( $stat_image && '' !== $stat_url ) : ?>
+                                        <a class="profile-stat-platform-link profile-stat-platform-<?php echo esc_attr( prashant_bootstrap_get_social_platform_class( $stat_label, $stat_url ) ); ?>" href="<?php echo esc_url( $stat_url ); ?>" target="_blank" rel="noopener noreferrer">
+                                            <span class="profile-stat-thumbnail-wrap">
+                                                <img class="profile-stat-thumbnail" src="<?php echo esc_url( $stat_number ); ?>" alt="<?php echo esc_attr( $stat_label ); ?>">
+                                                <span class="profile-stat-thumbnail-badge" aria-hidden="true">
+                                                    <?php echo prashant_bootstrap_get_social_icon_svg( $stat_label, $stat_url ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                                                </span>
+                                            </span>
+                                            <?php if ( '' !== $stat_label ) : ?>
+                                                <span class="profile-stat-platform-name">
+                                                    <span class="profile-stat-platform-name-icon" aria-hidden="true">
+                                                        <?php echo prashant_bootstrap_get_social_icon_svg( $stat_label, $stat_url ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                                                    </span>
+                                                    <span><?php echo esc_html( $stat_label ); ?></span>
+                                                </span>
+                                            <?php endif; ?>
+                                        </a>
+                                    <?php else : ?>
+                                        <?php if ( $stat_image ) : ?>
+                                            <img class="profile-stat-thumbnail" src="<?php echo esc_url( $stat_number ); ?>" alt="<?php echo esc_attr( $stat_label ); ?>">
+                                        <?php elseif ( ! empty( $data['social_links'] ) ) : ?>
+                                            <div class="profile-stat-icon profile-stat-icon-<?php echo esc_attr( prashant_bootstrap_get_social_platform_class( $stat['label'] ) ); ?>">
+                                                <?php echo prashant_bootstrap_get_social_icon_svg( $stat['label'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                                            </div>
+                                        <?php endif; ?>
+                                        <?php if ( ! $stat_image && '' !== $stat_number ) : ?>
+                                            <div class="profile-stat-number"><?php echo esc_html( $stat_number ); ?></div>
+                                        <?php endif; ?>
+                                        <?php if ( '' !== $stat_label ) : ?>
+                                            <p class="mb-0"><?php echo esc_html( $stat_label ); ?></p>
+                                        <?php endif; ?>
                                     <?php endif; ?>
                                 </article>
                             </div>
@@ -480,7 +516,7 @@ while ( have_posts() ) :
             </section>
         <?php endif; ?>
 
-        <?php if ( ! empty( $data['social_links'] ) ) : ?>
+        <?php if ( 'social-media' !== $page_slug && ! empty( $data['social_links'] ) ) : ?>
             <section class="profile-band">
                 <div class="container">
                     <div class="row g-4">

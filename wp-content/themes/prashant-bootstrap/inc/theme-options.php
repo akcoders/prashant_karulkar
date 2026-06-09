@@ -616,24 +616,15 @@ function prashant_bootstrap_get_today_quote_image( $images ) {
         return array();
     }
 
-    $today    = current_time( 'Y-m-d' );
-    $undated  = array();
+    $today = current_time( 'Y-m-d' );
 
     foreach ( $images as $image ) {
         if ( ! empty( $image['date'] ) && $today === $image['date'] ) {
             return $image;
         }
-
-        if ( empty( $image['date'] ) ) {
-            $undated[] = $image;
-        }
     }
 
-    if ( ! empty( $undated ) ) {
-        return $undated[ (int) current_time( 'z' ) % count( $undated ) ];
-    }
-
-    return $images[ (int) current_time( 'z' ) % count( $images ) ];
+    return array();
 }
 
 function prashant_bootstrap_get_home_profile_images() {
